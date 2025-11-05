@@ -1,0 +1,15 @@
+image: node:18
+
+stages:
+  - install
+  - build
+
+install_dependencies:
+  stage: install
+  script:
+    - npm ci
+
+build_app:
+  stage: build
+  script:
+    - npm run build
