@@ -8,8 +8,18 @@ install_dependencies:
   stage: install
   script:
     - npm ci
+  artifacts:
+    paths:
+      - node_modules/
+    expire_in: 1 hour
 
 build_app:
   stage: build
+  dependencies:
+    - install_dependencies
   script:
     - npm run build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
