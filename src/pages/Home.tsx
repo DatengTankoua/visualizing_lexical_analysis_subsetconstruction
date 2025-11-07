@@ -9,7 +9,7 @@ export default function Home() {
   const handleLoad = (text: string) => {
     setDslString(text);
     const nfa = parseDSL(text);
-    console.log(nfa);
+    console.log("DSLString:", dslString, "NFA:", nfa);
   };
 
   return (
