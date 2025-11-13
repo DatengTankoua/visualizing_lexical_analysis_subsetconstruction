@@ -78,7 +78,16 @@ export default function Home() {
           </div>
         )}
         
-        <GraphViewer />
+        <section className="mt-4">
+          <h2 className="mb-2 font-medium">Graphvisualisierung</h2>
+          {nfa ? (
+            <GraphViewer nfa={nfa} />
+          ) : (
+            <div className="border h-[480px] rounded-xl grid place-items-center text-gray-500">
+              Graphvisualisierung hier
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );
