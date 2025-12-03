@@ -12,6 +12,8 @@ export interface NFA {
   startState: State;
   acceptStates: State[];
   transitions: Transition[];
+  name?: string;
+  regex?: string;
 }
 
 export interface DFA {
@@ -20,4 +22,23 @@ export interface DFA {
   startState: State;
   acceptStates: State[];
   transitions: Transition[];
+}
+
+export interface ParseResult {
+  success: boolean;
+  nfa?: NFA;
+  error?: string;
+  line?: number;
+}
+
+export class DSLParseError extends Error {
+  line?: number;
+  column?: number;
+  
+  constructor(message: string, line?: number, column?: number) {
+    super(message);
+    this.name = 'DSLParseError';
+    this.line = line;
+    this.column = column;
+  }
 }
