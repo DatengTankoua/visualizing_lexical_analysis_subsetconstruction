@@ -57,7 +57,10 @@ export default function Home() {
               </div>
               <div>
                 <span className="font-medium">Alphabet:</span> {nfa.alphabet.length}
-                <div className="text-gray-600">[{nfa.alphabet.join(', ')}]</div>
+                <div className="text-gray-600">
+                  [{nfa.alphabet.join(', ')}]
+                  {nfa.hasEpsilon && <span className="ml-1 text-purple-600">(+ε)</span>}
+                </div>
               </div>
               <div>
                 <span className="font-medium">Start:</span> {nfa.startState}
@@ -69,6 +72,11 @@ export default function Home() {
             </div>
             <div className="mt-3">
               <span className="font-medium">Übergänge:</span> {nfa.transitions.length}
+              {nfa.hasEpsilon && (
+                <span className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">
+                  mit ε-Übergängen
+                </span>
+              )}
               {nfa.regex && (
                 <div className="text-gray-600 mt-1">
                   <span className="font-medium">RegEx:</span> {nfa.regex}

@@ -14,6 +14,7 @@ export interface NFA {
   transitions: Transition[];
   name?: string;
   regex?: string;
+  hasEpsilon?: boolean; // Ob der NFA Epsilon-Übergänge enthält
 }
 
 export interface DFA {
