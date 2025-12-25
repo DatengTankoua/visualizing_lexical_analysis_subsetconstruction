@@ -2,11 +2,19 @@ import type { NFA, ParseResult, Transition } from "../models/types";
 import { DSLParseError } from "../models/types";
 
 /**
- * Parst eine DSL-Eingabe und gibt ein ParseResult zurück
+ * Parst eine DSL-Eingabe (AEF-Format) und gibt ein ParseResult zurück
+ * 
+ * AEF-Format:
+ * - Metadaten: # @NAME name, # @REGEX regex
+ * - Transitionen: .q0 -1> q1 -0> q2;
+ * - Startzustand: . vor dem State (z.B. .q0)
+ * - Akzeptierender Zustand: () um den State (z.B. (q1))
+ * - Epsilon-Transitionen: -ε> oder -epsilon>
+ * - Jede Datei sollte genau eine NFA-Definition enthalten
  */
 export function parseDSL(input: string): ParseResult {
   try {
-    const nfa = parseDSLUnsafe(input);
+    const nfa = parseAEFFormat(input);
     return {
       success: true,
       nfa
@@ -27,165 +35,465 @@ export function parseDSL(input: string): ParseResult {
 }
 
 /**
- * Interne Parser-Funktion die Exceptions wirft
+ * Parst das AEF-Format und gibt eine einzelne NFA zurück
  */
-function parseDSLUnsafe(input: string): NFA {
+function parseAEFFormat(input: string): NFA {
   const lines = input.split('\n').map((line, index) => ({ 
     content: line.trim(), 
     number: index + 1 
   }));
   
-  const nfa: NFA = {
-    states: [],
-    alphabet: [],
-    startState: "",
-    acceptStates: [],
-    transitions: []
-  };
-
-
+  const nfa = createEmptyNFA();
+  let hasTransitions = false;
   
+  // Tracking für konsistente Zustandsnotation
+  const stateNotations = new Map<string, { notation: string; line: number; isStart: boolean; isAccept: boolean }>();
+
   for (const { content, number } of lines) {
     // Überspringe leere Zeilen
-    if (!content) continue;
-    
+    if (!content) {
+      continue;
+    }
+
     // Parse Kommentare und Metadaten
     if (content.startsWith('#')) {
       const metaMatch = content.match(/^#\s*@(\w+)\s+(.+)$/);
       if (metaMatch) {
         const [, key, value] = metaMatch;
         if (key === 'NAME') {
-          nfa.name = value;
+          nfa.name = value.trim();
         } else if (key === 'REGEX') {
-          nfa.regex = value;
+          nfa.regex = value.trim();
         }
       }
       continue;
     }
 
-    // Parse Sektionen
-    const words = content.split(/\s+/);
-    const firstWord = words[0].toLowerCase();
-
-    switch (firstWord) {
-      case 'states':
-        if (words.length < 2) {
-          throw new DSLParseError('States-Sektion benötigt mindestens einen Zustand', number);
-        }
-        nfa.states = words.slice(1);
-        break;
-
-      case 'alphabet':
-        if (words.length < 2) {
-          throw new DSLParseError('Alphabet-Sektion benötigt mindestens ein Symbol', number);
-        }
-        nfa.alphabet = words.slice(1);
-        break;
-
-      case 'start': {
-        if (words.length !== 2) {
-          throw new DSLParseError('Start-Sektion benötigt genau einen Zustand', number);
-        }
-        const startState = words[1];
-        if (!nfa.states.includes(startState)) {
-          throw new DSLParseError(`Start-Zustand '${startState}' ist nicht in der States-Liste definiert`, number);
-        }
-        nfa.startState = startState;
-        break;
+    // Parse Transitionen im AEF-Format
+    try {
+      parseTransitionLine(content, nfa, number, stateNotations);
+      hasTransitions = true;
+    } catch (error) {
+      if (error instanceof DSLParseError) {
+        throw error;
       }
-
-      case 'accept': {
-        if (words.length < 2) {
-          throw new DSLParseError('Accept-Sektion benötigt mindestens einen Zustand', number);
-        }
-        const acceptStates = words.slice(1);
-        for (const state of acceptStates) {
-          if (!nfa.states.includes(state)) {
-            throw new DSLParseError(`Akzeptierender Zustand '${state}' ist nicht in der States-Liste definiert`, number);
-          }
-        }
-        nfa.acceptStates = acceptStates;
-        break;
-      }
-
-      default:
-        // Parse Übergänge
-        if (words.length === 3) {
-          const [from, symbol, to] = words;
-          
-          // Validiere Zustände
-          if (!nfa.states.includes(from)) {
-            throw new DSLParseError(`Zustand '${from}' ist nicht definiert`, number);
-          }
-          if (!nfa.states.includes(to)) {
-            throw new DSLParseError(`Zustand '${to}' ist nicht definiert`, number);
-          }
-          
-          // Validiere Symbol
-          if (!nfa.alphabet.includes(symbol)) {
-            throw new DSLParseError(`Symbol '${symbol}' ist nicht im Alphabet definiert`, number);
-          }
-
-          const transition: Transition = { from, symbol, to };
-          nfa.transitions.push(transition);
-        } else if (words.length > 0) {
-          throw new DSLParseError(`Ungültige Zeile: '${content}'. Erwartetes Format: 'von_zustand symbol zu_zustand' oder Sektion`, number);
-        }
-        break;
+      throw new DSLParseError(`Fehler beim Parsen der Zeile: ${content}`, number);
     }
   }
 
-  // Validiere vollständige NFA
-  validateNFA(nfa);
+  // Validiere NFA
+  if (!hasTransitions) {
+    throw new DSLParseError('Keine Transitionen gefunden');
+  }
   
+  finalizeNFA(nfa);
   return nfa;
 }
 
 /**
- * Validiert ein vollständig geparste NFA
+ * Erstellt ein leeres NFA-Objekt
  */
-function validateNFA(nfa: NFA): void {
+function createEmptyNFA(): NFA {
+  return {
+    states: [],
+    alphabet: [],
+    startState: "",
+    acceptStates: [],
+    transitions: [],
+    hasEpsilon: false
+  };
+}
+
+/**
+ * Parst eine Transitionszeile im AEF-Format mit strikten Validierungen
+ * Beispiele:
+ * - .q0 -1> q1 -0> q2 -1> q3;
+ * - .q0 -A> -B> q0;
+ * - q3 -ε> (q5);
+ * 
+ * Strikte Regeln:
+ * - Zeile MUSS mit Semikolon (;) enden
+ * - Startzustand MUSS mit . markiert sein (z.B. .q0)
+ * - Endzustand MUSS in Klammern sein (z.B. (q5))
+ * - Symbole MÜSSEN Format -symbol> haben (keine Leerzeichen)
+ * - Tokens MÜSSEN durch Leerzeichen getrennt sein
+ * - Nur ε für Epsilon erlaubt (nicht "epsilon")
+ * - Nur EIN Startzustand im gesamten NFA erlaubt
+ */
+function parseTransitionLine(
+  line: string, 
+  nfa: NFA, 
+  lineNumber: number,
+  stateNotations: Map<string, { notation: string; line: number; isStart: boolean; isAccept: boolean }>
+): void {
+  // REGEL 1: Zeile MUSS mit Semikolon enden
+  if (!line.endsWith(';')) {
+    throw new DSLParseError(
+      `Zeile muss mit Semikolon (;) enden. Gefunden: "${line}"`,
+      lineNumber
+    );
+  }
+  
+  // Entferne Semikolon und trim
+  line = line.slice(0, -1).trim();
+  
+  if (!line) {
+    throw new DSLParseError(`Leere Zeile (nur Semikolon)`, lineNumber);
+  }
+
+  // REGEL 2: Prüfe auf ungültige Formate BEVOR wir tokenisieren
+  validateLineFormat(line, lineNumber);
+
+  // Tokenisiere mit Leerzeichen als Trenner
+  const tokens = line.split(/\s+/).filter(t => t.length > 0);
+  
+  if (tokens.length === 0) {
+    throw new DSLParseError(`Keine gültigen Tokens gefunden`, lineNumber);
+  }
+
+  let currentState: string | null = null;
+  let pendingSymbols: string[] = [];
+  let hasAnyTransition = false;
+
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+
+    // REGEL 3: Prüfe Symbol-Format
+    if (token.match(/^-[^>]+-?$/)) {
+      throw new DSLParseError(
+        `Ungültiges Symbol-Format: "${token}". Erwartet: -symbol> (keine Leerzeichen)`,
+        lineNumber
+      );
+    }
+
+    if (token.startsWith('-') && token.endsWith('>')) {
+      // Dies ist ein Symbol
+      const symbol = token.substring(1, token.length - 1);
+      
+      // REGEL 4: Prüfe auf leeres Symbol
+      if (symbol.length === 0) {
+        throw new DSLParseError(`Leeres Symbol gefunden: "->"`, lineNumber);
+      }
+      
+      // REGEL 5: Prüfe auf Leerzeichen im Symbol
+      if (symbol.includes(' ')) {
+        throw new DSLParseError(
+          `Symbol darf keine Leerzeichen enthalten: "${token}"`,
+          lineNumber
+        );
+      }
+
+      // REGEL 6: Nur ε erlaubt, nicht "epsilon"
+      if (symbol === 'epsilon') {
+        throw new DSLParseError(
+          `Verwenden Sie 'ε' statt 'epsilon' für Epsilon-Übergänge`,
+          lineNumber
+        );
+      }
+      
+      if (!currentState) {
+        throw new DSLParseError(
+          `Symbol '${symbol}' ohne Ausgangszustand gefunden`,
+          lineNumber
+        );
+      }
+
+      // Sammle Symbol
+      pendingSymbols.push(symbol);
+      hasAnyTransition = true;
+      
+      // Behandle Epsilon-Transitionen
+      if (symbol === 'ε') {
+        nfa.hasEpsilon = true;
+      } else {
+        // Füge Symbol zum Alphabet hinzu
+        if (!nfa.alphabet.includes(symbol)) {
+          nfa.alphabet.push(symbol);
+        }
+      }
+    } else {
+      // Dies ist ein Zustand
+      const { stateName, isStart, isAccept } = parseStateToken(token, lineNumber);
+      
+      // REGEL 7: Prüfe Konsistenz der Zustandsnotation
+      const existing = stateNotations.get(stateName);
+      if (existing) {
+        // Zustand wurde bereits verwendet - prüfe Konsistenz
+        if (existing.notation !== token) {
+          throw new DSLParseError(
+            `Inkonsistente Notation für Zustand '${stateName}': ` +
+            `zuerst als '${existing.notation}' in Zeile ${existing.line} deklariert, ` +
+            `jetzt als '${token}' verwendet`,
+            lineNumber
+          );
+        }
+        // Prüfe Start/Akzeptierungs-Status-Konsistenz
+        if (existing.isStart !== isStart) {
+          throw new DSLParseError(
+            `Inkonsistente Startzustand-Markierung für '${stateName}': ` +
+            `${existing.isStart ? 'war' : 'war nicht'} Startzustand in Zeile ${existing.line}, ` +
+            `${isStart ? 'ist' : 'ist nicht'} jetzt Startzustand`,
+            lineNumber
+          );
+        }
+        if (existing.isAccept !== isAccept) {
+          throw new DSLParseError(
+            `Inkonsistente Akzeptierungszustand-Markierung für '${stateName}': ` +
+            `${existing.isAccept ? 'war' : 'war nicht'} Akzeptierungszustand in Zeile ${existing.line}, ` +
+            `${isAccept ? 'ist' : 'ist nicht'} jetzt Akzeptierungszustand`,
+            lineNumber
+          );
+        }
+      } else {
+        // Erste Verwendung dieses Zustands - speichere Notation
+        stateNotations.set(stateName, {
+          notation: token,
+          line: lineNumber,
+          isStart,
+          isAccept
+        });
+      }
+      
+      // REGEL 8: Nur EIN Startzustand erlaubt
+      if (isStart) {
+        if (nfa.startState && nfa.startState !== stateName) {
+          throw new DSLParseError(
+            `Mehrere Startzustände gefunden: "${nfa.startState}" und "${stateName}". Nur ein Startzustand ist erlaubt`,
+            lineNumber
+          );
+        }
+        nfa.startState = stateName;
+      }
+
+      // Füge Zustand hinzu, falls noch nicht vorhanden
+      if (!nfa.states.includes(stateName)) {
+        nfa.states.push(stateName);
+      }
+
+      // Füge zu akzeptierenden Zuständen hinzu
+      if (isAccept && !nfa.acceptStates.includes(stateName)) {
+        nfa.acceptStates.push(stateName);
+      }
+
+      // Erstelle Transitionen für alle ausstehenden Symbole
+      if (pendingSymbols.length > 0 && currentState) {
+        for (const symbol of pendingSymbols) {
+          const transition: Transition = {
+            from: currentState,
+            symbol: symbol,
+            to: stateName
+          };
+          
+          // Prüfe auf Duplikate
+          const isDuplicate = nfa.transitions.some(
+            t => t.from === transition.from && 
+                 t.symbol === transition.symbol && 
+                 t.to === transition.to
+          );
+          
+          if (!isDuplicate) {
+            nfa.transitions.push(transition);
+          }
+        }
+        pendingSymbols = [];
+      } else if (currentState) {
+        // REGEL: Zwei aufeinanderfolgende Zustände ohne Symbol dazwischen sind ungültig
+        throw new DSLParseError(
+          `Zwei aufeinanderfolgende Zustände ohne Transition gefunden: "${currentState}" und "${stateName}". ` +
+          `Erwarte Symbol zwischen Zuständen (z.B. ${currentState} -a> ${stateName})`,
+          lineNumber
+        );
+      }
+
+      // Aktueller Zustand wird zum neuen Ausgangszustand
+      currentState = stateName;
+    }
+  }
+
+  // REGEL 9: Zeile muss mindestens eine Transition enthalten
+  if (!hasAnyTransition) {
+    throw new DSLParseError(
+      `Zeile enthält keine Transitionen. Erwartet: Zustand -symbol> Zustand`,
+      lineNumber
+    );
+  }
+
+  if (pendingSymbols.length > 0) {
+    throw new DSLParseError(
+      `Symbole ${pendingSymbols.join(', ')} ohne Zielzustand`,
+      lineNumber
+    );
+  }
+}
+
+/**
+ * Validiert das Format einer Zeile VOR dem Tokenisieren
+ */
+function validateLineFormat(line: string, lineNumber: number): void {
+  // Prüfe auf ungültige Muster
+  
+  // -> (leeres Symbol)
+  if (line.includes('->')) {
+    throw new DSLParseError(
+      `Ungültiges Format "->". Symbol darf nicht leer sein`,
+      lineNumber
+    );
+  }
+  
+  // -Symbol (fehlendes >)
+  const invalidSymbolPattern = /-[^\s>]+(?:\s|$)/;
+  if (invalidSymbolPattern.test(line)) {
+    throw new DSLParseError(
+      `Ungültiges Symbol-Format gefunden. Erwartet: -symbol> (mit >)`,
+      lineNumber
+    );
+  }
+  
+  // Symbol> (fehlendes -)
+  const missingDashPattern = /(?:^|\s)[^-.\s(][^\s]*>/;
+  if (missingDashPattern.test(line)) {
+    throw new DSLParseError(
+      `Ungültiges Symbol-Format gefunden. Symbol muss mit - beginnen: -symbol>`,
+      lineNumber
+    );
+  }
+}
+
+/**
+ * Parst ein Zustands-Token und validiert das Format
+ * Unterstützte Formate:
+ * - qi: normaler Zustand
+ * - .qi: Startzustand
+ * - (qi): Akzeptierzustand
+ * - (.qi): Start- und Akzeptierzustand
+ */
+function parseStateToken(token: string, lineNumber: number): {
+  stateName: string;
+  isStart: boolean;
+  isAccept: boolean;
+} {
+  let isStart = false;
+  let isAccept = false;
+  let stateName = token;
+  
+  // Prüfe auf Akzeptierzustand (Klammern)
+  if (token.startsWith('(') && token.endsWith(')')) {
+    isAccept = true;
+    stateName = token.substring(1, token.length - 1);
+    
+    // Validiere Klammer-Format
+    if (!stateName) {
+      throw new DSLParseError(
+        `Leerer Zustandsname in Klammern: "${token}"`,
+        lineNumber
+      );
+    }
+    
+    // Prüfe auf Start-Notation innerhalb von Klammern: (.qi)
+    if (stateName.startsWith('.')) {
+      isStart = true;
+      stateName = stateName.substring(1);
+      
+      if (!stateName) {
+        throw new DSLParseError(
+          `Leerer Zustandsname nach Punkt in Klammern: "${token}"`,
+          lineNumber
+        );
+      }
+    }
+  } else if (token.startsWith('.')) {
+    // .qi - Startzustand
+    isStart = true;
+    stateName = token.substring(1);
+  }
+  
+  // REGEL: Zustandsname darf keine Leerzeichen enthalten
+  if (stateName.includes(' ')) {
+    throw new DSLParseError(
+      `Zustandsname darf keine Leerzeichen enthalten: "${stateName}"`,
+      lineNumber
+    );
+  }
+  
+  // REGEL: Zustandsname darf nicht leer sein
+  if (stateName.length === 0) {
+    throw new DSLParseError(
+      `Leerer Zustandsname gefunden: "${token}"`,
+      lineNumber
+    );
+  }
+  
+  // Prüfe auf ungültige Zeichen
+  if (!stateName.match(/^[\w∅]+$/)) {
+    throw new DSLParseError(
+      `Ungültiger Zustandsname: "${stateName}". Erlaubt sind nur Buchstaben, Zahlen, Unterstriche und ∅`,
+      lineNumber
+    );
+  }
+  
+  return { stateName, isStart, isAccept };
+}
+
+/**
+ * Finalisiert ein NFA und validiert es
+ */
+function finalizeNFA(nfa: NFA): void {
+  // REGEL 1: Mindestens ein Zustand erforderlich
   if (nfa.states.length === 0) {
     throw new DSLParseError('Keine Zustände definiert');
   }
   
-  if (nfa.alphabet.length === 0) {
-    throw new DSLParseError('Kein Alphabet definiert');
-  }
-  
+  // REGEL 2: Genau EIN Startzustand erforderlich (nicht optional!)
   if (!nfa.startState) {
-    throw new DSLParseError('Kein Start-Zustand definiert');
+    throw new DSLParseError(
+      'Kein Startzustand definiert. Markieren Sie einen Zustand mit . (z.B. .q0)'
+    );
   }
   
+  // REGEL 3: Mindestens ein akzeptierender Zustand erforderlich
   if (nfa.acceptStates.length === 0) {
-    throw new DSLParseError('Keine akzeptierenden Zustände definiert');
+    throw new DSLParseError(
+      'Keine akzeptierenden Zustände definiert. Setzen Sie mindestens einen Zustand in Klammern (z.B. (q2))'
+    );
   }
 
-  // Prüfe auf doppelte Zustände
-  const uniqueStates = new Set(nfa.states);
-  if (uniqueStates.size !== nfa.states.length) {
-    throw new DSLParseError('Doppelte Zustände in der States-Liste');
+  // REGEL 4: Mindestens eine Transition erforderlich
+  if (nfa.transitions.length === 0) {
+    throw new DSLParseError('Keine Transitionen definiert');
   }
 
-  // Prüfe auf doppelte akzeptierende Zustände
-  const uniqueAcceptStates = new Set(nfa.acceptStates);
-  if (uniqueAcceptStates.size !== nfa.acceptStates.length) {
-    throw new DSLParseError('Doppelte akzeptierende Zustände in der Accept-Liste');
+  // REGEL 5: Startzustand muss in der Zustandsliste sein
+  if (!nfa.states.includes(nfa.startState)) {
+    throw new DSLParseError(
+      `Startzustand "${nfa.startState}" existiert nicht in der Zustandsliste`
+    );
   }
 
-  // Prüfe auf doppelte Alphabet-Symbole
-  const uniqueSymbols = new Set(nfa.alphabet);
-  if (uniqueSymbols.size !== nfa.alphabet.length) {
-    throw new DSLParseError('Doppelte Symbole im Alphabet');
-  }
-
-  //Prüfe auf doppelte Übergänge
-  const transitionSet = new Set<string>();
-  for (const transition of nfa.transitions) {
-    const key = `${transition.from}-${transition.symbol}-${transition.to}`;
-    if (transitionSet.has(key)) {
-      throw new DSLParseError(`Doppelter Übergang: ${key}`);
+  // REGEL 6: Alle akzeptierenden Zustände müssen existieren
+  for (const acceptState of nfa.acceptStates) {
+    if (!nfa.states.includes(acceptState)) {
+      throw new DSLParseError(
+        `Akzeptierender Zustand "${acceptState}" existiert nicht in der Zustandsliste`
+      );
     }
-    transitionSet.add(key);
   }
+
+  // REGEL 7: Alle Transitionen müssen gültige Zustände referenzieren
+  for (const transition of nfa.transitions) {
+    if (!nfa.states.includes(transition.from)) {
+      throw new DSLParseError(
+        `Transition verwendet unbekannten Zustand: "${transition.from}"`
+      );
+    }
+    if (!nfa.states.includes(transition.to)) {
+      throw new DSLParseError(
+        `Transition verwendet unbekannten Zustand: "${transition.to}"`
+      );
+    }
+  }
+
+  // Sortiere Arrays für Konsistenz
+  nfa.states.sort();
+  nfa.alphabet.sort();
+  nfa.acceptStates.sort();
 }
