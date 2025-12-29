@@ -146,6 +146,54 @@ q1 -b> (q2);`;
         expect(textarea).toHaveValue(fileContent);
       });
     });
+
+    it('should reject files larger than 1 MB', () => {
+      render(<DSLInput onLoad={mockOnLoad} onParseResult={mockOnParseResult} />);
+      
+      // Erstelle eine Datei > 1 MB
+      const largeContent = 'x'.repeat(1024 * 1024 + 1); // 1 MB + 1 Byte
+      const file = new File([largeContent], 'large.aef', { type: 'text/plain' });
+      
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      
+      Object.defineProperty(fileInput, 'files', {
+        value: [file],
+        writable: false,
+      });
+      
+      fireEvent.change(fileInput);
+      
+      expect(mockOnParseResult).toHaveBeenCalledWith({
+        success: false,
+        error: expect.stringContaining('Datei ist zu groß'),
+      });
+    });
+
+    it('should accept files up to 1 MB', async () => {
+      render(<DSLInput onLoad={mockOnLoad} onParseResult={mockOnParseResult} />);
+      
+      // Erstelle eine Datei exakt 1 MB
+      const content = 'x'.repeat(1024 * 1024); // Exakt 1 MB
+      const file = new File([content], 'max-size.aef', { type: 'text/plain' });
+      
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      
+      Object.defineProperty(fileInput, 'files', {
+        value: [file],
+        writable: false,
+      });
+      
+      fireEvent.change(fileInput);
+      
+      await waitFor(() => {
+        const textarea = screen.getByRole('textbox');
+        expect(textarea).toHaveValue(content);
+      });
+      
+      expect(mockOnParseResult).not.toHaveBeenCalledWith(
+        expect.objectContaining({ success: false })
+      );
+    });
   });
 
   describe('Example Selection', () => {

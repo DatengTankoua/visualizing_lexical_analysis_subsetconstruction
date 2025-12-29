@@ -37,10 +37,26 @@ export default function DSLInput({ onLoad, onParseResult }: Props) {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Prüfe Dateigröße (max 1 MB)
+    const maxSize = 1024 * 1024; // 1 MB in Bytes
+    if (file.size > maxSize) {
+      onParseResult({
+        success: false,
+        error: `Datei ist zu groß (${(file.size / 1024 / 1024).toFixed(2)} MB). Maximale Größe: 1 MB`
+      });
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = e.target?.result as string;
       setText(content);
+    };
+    reader.onerror = () => {
+      onParseResult({
+        success: false,
+        error: 'Fehler beim Lesen der Datei'
+      });
     };
     reader.readAsText(file);
   };
