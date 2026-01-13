@@ -1,11 +1,5 @@
-
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type CSSProperties,
-} from "react";
+// src/components/GraphViewer/GraphViewer.tsx
+import React, { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -21,7 +15,9 @@ import ReactFlow, {
   type NodeChange,
   type EdgeChange,
   type Connection,
-  ReactFlowProvider,
+  BaseEdge,
+  EdgeLabelRenderer,
+  type EdgeProps,
 } from "reactflow";
 import "reactflow/dist/style.css";
 
@@ -29,8 +25,65 @@ import type { NFA, Transition } from "../../core/models/types";
 
 type ViewerProps = { nfa?: NFA; interactive?: boolean };
 
-/* --------- Circular node with START / ACCEPT inside --------- */
+type OffsetEdgeData = {
+  offset?: number;
+};
 
+/* ---------------- Custom Offset Bezier Edge ----------------
+   edge.data.offset: number  (negative => arc up, positive => arc down)
+*/
+function OffsetBezierEdge(props: EdgeProps) {
+  const {
+    id,
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    markerEnd,
+    style,
+    label,
+    labelStyle,
+    data,
+  } = props;
+
+  const offset = (data as OffsetEdgeData | undefined)?.offset ?? 0;
+
+  // cubic bezier with y-offset control points
+  const c1x = sourceX;
+  const c1y = sourceY + offset;
+  const c2x = targetX;
+  const c2y = targetY + offset;
+
+  const path = `M ${sourceX},${sourceY} C ${c1x},${c1y} ${c2x},${c2y} ${targetX},${targetY}`;
+
+  // label at midpoint + offset
+  const lx = (sourceX + targetX) / 2;
+  const ly = (sourceY + targetY) / 2 + offset;
+
+  return (
+    <>
+      <BaseEdge id={id} path={path} markerEnd={markerEnd} style={style} />
+      {label != null && (
+        <EdgeLabelRenderer>
+          <div
+            className="nodrag nopan"
+            style={{
+              position: "absolute",
+              transform: `translate(-50%, -50%) translate(${lx}px, ${ly}px)`,
+              ...(labelStyle as CSSProperties),
+            }}
+          >
+            {label}
+          </div>
+        </EdgeLabelRenderer>
+      )}
+    </>
+  );
+}
+
+const edgeTypes = { offsetBezier: OffsetBezierEdge };
+
+/* --------- Circular node with START / ACCEPT inside --------- */
 function StateNode({
   data,
 }: {
@@ -47,12 +100,13 @@ function StateNode({
         <div
           style={{
             position: "absolute",
-            inset: -6,
+            inset: 6,
             border: `3px solid ${stroke}`,
             borderRadius: "50%",
           }}
         />
       )}
+
       <div
         style={{
           width: size,
@@ -66,49 +120,27 @@ function StateNode({
           boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            lineHeight: 1.1,
-          }}
-        >
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", lineHeight: 1.1 }}>
           {isStart && (
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: 0.4,
-                color: "#065f46",
-              }}
-            >
+            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: 0.4, color: "#065f46" }}>
               START
             </span>
           )}
           {isAccept && !isStart && (
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: 0.4,
-                color: "#2563eb",
-              }}
-            >
+            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: 0.4, color: "#2563eb" }}>
               ACCEPT
             </span>
           )}
-          <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>
-            {id}
-          </span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>{id}</span>
         </div>
       </div>
 
-      {/* four handles for routing / loops */}
+      {/* handles */}
       <Handle type="source" position={Position.Top} id="top-s" />
       <Handle type="source" position={Position.Right} id="right-s" />
       <Handle type="source" position={Position.Bottom} id="bottom-s" />
       <Handle type="source" position={Position.Left} id="left-s" />
+
       <Handle type="target" position={Position.Top} id="top-t" />
       <Handle type="target" position={Position.Right} id="right-t" />
       <Handle type="target" position={Position.Bottom} id="bottom-t" />
@@ -120,7 +152,6 @@ function StateNode({
 const nodeTypes = { state: StateNode };
 
 /* ---------------- outer wrapper ---------------- */
-
 export default function GraphViewer({ nfa, interactive = false }: ViewerProps) {
   if (!nfa) {
     return (
@@ -132,25 +163,23 @@ export default function GraphViewer({ nfa, interactive = false }: ViewerProps) {
   return <GraphCanvas nfa={nfa} interactive={interactive} />;
 }
 
-/* ---------------- canvas with edges ---------------- */
-
-function GraphCanvas({
-  nfa,
-  interactive = false,
-}: {
-  nfa: NFA;
-  interactive?: boolean;
-}) {
-  const model = nfa;
+/* ---------------- canvas ---------------- */
+function GraphCanvas({ nfa, interactive = false }: { nfa: NFA; interactive?: boolean }) {
+  const { states, startState, acceptStates, transitions } = nfa;
 
   const initial = useMemo(() => {
-    const gapX = 250;
-    const yStart = 100;
-    const yNorm = 240;
+    // ---- layout ----
+    const gapX = 180;
+    const yStart = 120;
+    const yNorm = 260;
 
-    const nodes: Node[] = model.states.map((s, i) => {
-      const isStart = s === model.startState;
-      const isAccept = model.acceptStates.includes(s);
+    // index map for "跨越边" detection
+    const indexOf = new Map<string, number>();
+    states.forEach((s, i) => indexOf.set(s, i));
+
+    const nodes: Node[] = states.map((s, i) => {
+      const isStart = s === startState;
+      const isAccept = acceptStates.includes(s);
       return {
         id: s,
         type: "state",
@@ -159,79 +188,131 @@ function GraphCanvas({
       };
     });
 
-    const pairOrder: Record<string, number> = {};
-    const loopOrder: Record<string, number> = {};
+    const labelStyle: CSSProperties = {
+      fontSize: 12,
+      fontWeight: 600,
+      pointerEvents: "none",
+      background: "rgba(255,255,255,0.95)",
+      padding: "2px 6px",
+      borderRadius: 8,
+      border: "1px solid rgba(148,163,184,0.7)",
+      zIndex: 10,
+      whiteSpace: "nowrap",
+    };
 
-    const edges: Edge[] = model.transitions.map((t: Transition) => {
+    // detect reverse edges: a<->b
+    const directed = new Set(transitions.map((t) => `${t.from}->${t.to}`));
+    const unorderedKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
+    const hasReverse = new Map<string, boolean>();
+    transitions.forEach((t) => {
+      const k = unorderedKey(t.from, t.to);
+      if (directed.has(`${t.to}->${t.from}`)) hasReverse.set(k, true);
+    });
+
+    // for multiple edges between same from->to
+    const pairCount: Record<string, number> = {};
+
+    const edges: Edge[] = transitions.map((t: Transition) => {
       const key = `${t.from}->${t.to}`;
-      pairOrder[key] = (pairOrder[key] ?? 0) + 1;
-      const isLoop = t.from === t.to;
+      pairCount[key] = (pairCount[key] ?? 0) + 1;
+      const order = pairCount[key] - 1;
 
-      // base style for all edges
+      const iFrom = indexOf.get(t.from) ?? 0;
+      const iTo = indexOf.get(t.to) ?? 0;
+      const dist = Math.abs(iFrom - iTo);
+
+      const isLoop = t.from === t.to;
+      const isEps = t.symbol === "ε";
+      const isReversePair = hasReverse.get(unorderedKey(t.from, t.to)) === true;
+
       const baseStyle: CSSProperties = {
         stroke: "#334155",
         strokeWidth: 2,
+        ...(isEps ? { strokeDasharray: "6 4" } : null),
       };
 
+      // ----- 1) self-loop -----
       if (isLoop) {
-        loopOrder[t.from] = (loopOrder[t.from] ?? 0) + 1;
-        const idx = loopOrder[t.from] - 1;
-
-        const variants: Array<{
-          sourceHandle: string;
-          targetHandle: string;
-          labelOffsetY: number;
-        }> = [
-          { sourceHandle: "right-s", targetHandle: "top-t", labelOffsetY: -10 },
-          { sourceHandle: "right-s", targetHandle: "bottom-t", labelOffsetY: 10 },
-          { sourceHandle: "left-s", targetHandle: "top-t", labelOffsetY: -10 },
-          { sourceHandle: "left-s", targetHandle: "bottom-t", labelOffsetY: 10 },
-        ];
-
-        const variant = variants[idx % variants.length];
-
         return {
-          id: `${t.from}-${t.symbol}-${t.to}-${pairOrder[key]}`,
+          id: `${t.from}-${t.symbol}-${t.to}-${order}`,
           source: t.from,
           target: t.to,
-          type: "step",
-          sourceHandle: variant.sourceHandle,
-          targetHandle: variant.targetHandle,
+          type: "offsetBezier",
+          sourceHandle: "right-s",
+          targetHandle: "top-t",
+          data: { offset: -70 - order * 20 },
+          animated: true,
           markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18 },
           label: t.symbol,
           style: baseStyle,
-          labelStyle: {
-            transform: "translateY(-2px)",
-            fontSize: 12,
-            fontWeight: 500,
-            pointerEvents: "none",
-          } as CSSProperties,
-        } as Edge;
+          labelStyle,
+        };
       }
 
-      const order = pairOrder[key];
+      // ----- 2) spanning edge (跨越边 dist>1): force arc UP by default -----
+      // If you prefer some spanning edges arc DOWN, you can add conditions here.
+      if (dist > 1) {
+        const offset = -140 - order * 25 - (isEps ? 25 : 0);
+        return {
+          id: `${t.from}-${t.symbol}-${t.to}-${order}`,
+          source: t.from,
+          target: t.to,
+          type: "offsetBezier",
+          sourceHandle: "top-s",
+          targetHandle: "top-t",
+          data: { offset },
+          animated: true,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18 },
+          label: t.symbol,
+          style: baseStyle,
+          labelStyle,
+        };
+      }
+
+      // ----- 3) reverse pair (相反方向边): split up/down -----
+      if (isReversePair) {
+        // smallIndex -> largeIndex goes UP; reverse goes DOWN
+        const forward = iFrom < iTo;
+        const offset = (forward ? -80 : 80) + order * (forward ? -15 : 15);
+
+        return {
+          id: `${t.from}-${t.symbol}-${t.to}-${order}`,
+          source: t.from,
+          target: t.to,
+          type: "offsetBezier",
+          sourceHandle: forward ? "top-s" : "bottom-s",
+          targetHandle: forward ? "top-t" : "bottom-t",
+          data: { offset },
+          animated: true,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18 },
+          label: t.symbol,
+          style: baseStyle,
+          labelStyle,
+        };
+      }
+
+      // ----- 4) normal adjacent edge -----
+      // epsilon gets small upward bend to avoid perfect overlap
+      const offset = (isEps ? -55 : 0) + order * -18;
 
       return {
         id: `${t.from}-${t.symbol}-${t.to}-${order}`,
         source: t.from,
         target: t.to,
-        type: "step",
+        type: "offsetBezier",
         sourceHandle: "right-s",
         targetHandle: "left-t",
+        data: { offset },
+        animated: true,
         markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18 },
         label: t.symbol,
         style: baseStyle,
-        labelStyle: {
-          transform: "translateY(-2px)",
-          fontSize: 12,
-          fontWeight: 500,
-          pointerEvents: "none",
-        } as CSSProperties,
-      } as Edge;
+        labelStyle,
+      };
     });
 
     return { nodes, edges };
-  }, [model]);
+  }, [states, startState, acceptStates, transitions]);
 
   const [nodes, setNodes] = useState<Node[]>(initial.nodes);
   const [edges, setEdges] = useState<Edge[]>(initial.edges);
@@ -264,7 +345,9 @@ function GraphCanvas({
         addEdge(
           {
             ...conn,
-            type: "step",
+            type: "offsetBezier",
+            data: { offset: -60 },
+            animated: true,
             markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18 },
           },
           eds
@@ -276,26 +359,26 @@ function GraphCanvas({
 
   return (
     <div className="border p-4 h-[520px] rounded-xl shadow-sm relative">
-      <div className="absolute top-2 left-3 text-sm text-gray-500">
-      </div>
-      <ReactFlowProvider>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          fitView
-          fitViewOptions={{ padding: 0.2 }}
-          proOptions={{ hideAttribution: true }}
-          attributionPosition="bottom-left"
-        >
-          <MiniMap nodeStrokeColor={() => "#111"} />
-          <Controls />
-          <Background gap={16} />
-        </ReactFlow>
-      </ReactFlowProvider>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        fitView
+        fitViewOptions={{ padding: 0.45 }}
+        nodesDraggable={interactive}
+        nodesConnectable={interactive}
+        elementsSelectable={interactive}
+        proOptions={{ hideAttribution: true }}
+        attributionPosition="bottom-left"
+      >
+        <MiniMap nodeStrokeColor={() => "#111"} />
+        <Controls />
+        <Background gap={16} />
+      </ReactFlow>
     </div>
   );
 }
