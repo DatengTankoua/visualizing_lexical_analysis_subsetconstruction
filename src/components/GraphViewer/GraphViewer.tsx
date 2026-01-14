@@ -1,4 +1,3 @@
-// src/components/GraphViewer/GraphViewer.tsx
 import React, { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import ReactFlow, {
   MiniMap,
@@ -22,6 +21,7 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 
 import type { NFA, Transition } from "../../core/models/types";
+import dagre from "dagre";
 
 type ViewerProps = { nfa?: NFA; interactive?: boolean };
 
@@ -29,26 +29,40 @@ type OffsetEdgeData = {
   offset?: number;
 };
 
-/* ---------------- Custom Offset Bezier Edge ----------------
-   edge.data.offset: number  (negative => arc up, positive => arc down)
-*/
+const NODE_W = 72;
+const NODE_H = 72;
+
+/* ---------------- Dagre Auto-Layout ---------------- */
+function layoutWithDagre(states: string[], transitions: Transition[]) {
+  const g = new dagre.graphlib.Graph();
+  g.setDefaultEdgeLabel(() => ({}));
+
+  g.setGraph({
+    rankdir: "LR",
+    nodesep: 60,
+    ranksep: 90,
+  });
+
+  states.forEach((id) => g.setNode(id, { width: NODE_W, height: NODE_H }));
+  transitions.forEach((t) => g.setEdge(t.from, t.to));
+
+  dagre.layout(g);
+
+  const pos = new Map<string, { x: number; y: number }>();
+  states.forEach((id) => {
+    const n = g.node(id) as { x: number; y: number };
+    pos.set(id, { x: n.x - NODE_W / 2, y: n.y - NODE_H / 2 });
+  });
+
+  return pos;
+}
+
+/* ---------------- Benutzerdefinierte Bezier-Kante mit Offset ---------------- */
 function OffsetBezierEdge(props: EdgeProps) {
-  const {
-    id,
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-    markerEnd,
-    style,
-    label,
-    labelStyle,
-    data,
-  } = props;
+  const { id, sourceX, sourceY, targetX, targetY, markerEnd, style, label, labelStyle, data } = props;
 
   const offset = (data as OffsetEdgeData | undefined)?.offset ?? 0;
 
-  // cubic bezier with y-offset control points
   const c1x = sourceX;
   const c1y = sourceY + offset;
   const c2x = targetX;
@@ -56,7 +70,6 @@ function OffsetBezierEdge(props: EdgeProps) {
 
   const path = `M ${sourceX},${sourceY} C ${c1x},${c1y} ${c2x},${c2y} ${targetX},${targetY}`;
 
-  // label at midpoint + offset
   const lx = (sourceX + targetX) / 2;
   const ly = (sourceY + targetY) / 2 + offset;
 
@@ -83,12 +96,8 @@ function OffsetBezierEdge(props: EdgeProps) {
 
 const edgeTypes = { offsetBezier: OffsetBezierEdge };
 
-/* --------- Circular node with START / ACCEPT inside --------- */
-function StateNode({
-  data,
-}: {
-  data: { id: string; isStart?: boolean; isAccept?: boolean };
-}) {
+/* ---------------- Zustand als Kreis mit START / ACCEPT ---------------- */
+function StateNode({ data }: { data: { id: string; isStart?: boolean; isAccept?: boolean } }) {
   const { id, isStart, isAccept } = data;
   const size = 72;
   const stroke = isAccept ? "#2563eb" : "#4b5563";
@@ -135,7 +144,7 @@ function StateNode({
         </div>
       </div>
 
-      {/* handles */}
+      {/* Handles */}
       <Handle type="source" position={Position.Top} id="top-s" />
       <Handle type="source" position={Position.Right} id="right-s" />
       <Handle type="source" position={Position.Bottom} id="bottom-s" />
@@ -151,7 +160,7 @@ function StateNode({
 
 const nodeTypes = { state: StateNode };
 
-/* ---------------- outer wrapper ---------------- */
+/* ---------------- Wrapper ---------------- */
 export default function GraphViewer({ nfa, interactive = false }: ViewerProps) {
   if (!nfa) {
     return (
@@ -163,27 +172,25 @@ export default function GraphViewer({ nfa, interactive = false }: ViewerProps) {
   return <GraphCanvas nfa={nfa} interactive={interactive} />;
 }
 
-/* ---------------- canvas ---------------- */
+/* ---------------- Canvas ---------------- */
 function GraphCanvas({ nfa, interactive = false }: { nfa: NFA; interactive?: boolean }) {
   const { states, startState, acceptStates, transitions } = nfa;
 
   const initial = useMemo(() => {
-    // ---- layout ----
-    const gapX = 180;
-    const yStart = 120;
-    const yNorm = 260;
+    const dagrePos = layoutWithDagre(states, transitions);
 
-    // index map for "跨越边" detection
     const indexOf = new Map<string, number>();
     states.forEach((s, i) => indexOf.set(s, i));
 
-    const nodes: Node[] = states.map((s, i) => {
+    const nodes: Node[] = states.map((s) => {
       const isStart = s === startState;
       const isAccept = acceptStates.includes(s);
+      const p = dagrePos.get(s) ?? { x: 0, y: 0 };
+
       return {
         id: s,
         type: "state",
-        position: { x: i * gapX, y: isStart ? yStart : yNorm },
+        position: p,
         data: { id: s, isStart, isAccept },
       };
     });
@@ -200,30 +207,51 @@ function GraphCanvas({ nfa, interactive = false }: { nfa: NFA; interactive?: boo
       whiteSpace: "nowrap",
     };
 
-    // detect reverse edges: a<->b
-    const directed = new Set(transitions.map((t) => `${t.from}->${t.to}`));
+    /* Transitionen nach (from,to) gruppieren und Labels zusammenfassen */
+    type Grouped = {
+      from: string;
+      to: string;
+      symbols: string[];
+      hasEps: boolean;
+    };
+
+    const grouped: Grouped[] = (() => {
+      const m = new Map<string, { from: string; to: string; symbols: Set<string> }>();
+
+      for (const tr of transitions) {
+        const key = `${tr.from}->${tr.to}`;
+        if (!m.has(key)) m.set(key, { from: tr.from, to: tr.to, symbols: new Set<string>() });
+        m.get(key)!.symbols.add(tr.symbol);
+      }
+
+      return Array.from(m.values()).map((g) => {
+        const symbols = Array.from(g.symbols).sort();
+        return { from: g.from, to: g.to, symbols, hasEps: g.symbols.has("ε") };
+      });
+    })();
+
+    /* Reverse-Paare erkennen: a<->b */
     const unorderedKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
+    const directedPairs = new Set(grouped.map((g) => `${g.from}->${g.to}`));
     const hasReverse = new Map<string, boolean>();
-    transitions.forEach((t) => {
-      const k = unorderedKey(t.from, t.to);
-      if (directed.has(`${t.to}->${t.from}`)) hasReverse.set(k, true);
-    });
+    for (const g of grouped) {
+      const k = unorderedKey(g.from, g.to);
+      if (directedPairs.has(`${g.to}->${g.from}`)) hasReverse.set(k, true);
+    }
 
-    // for multiple edges between same from->to
-    const pairCount: Record<string, number> = {};
+    const formatLabel = (symbols: string[]) => {
+      if (symbols.length <= 1) return symbols[0] ?? "";
+      return `{${symbols.join(",")}}`;
+    };
 
-    const edges: Edge[] = transitions.map((t: Transition) => {
-      const key = `${t.from}->${t.to}`;
-      pairCount[key] = (pairCount[key] ?? 0) + 1;
-      const order = pairCount[key] - 1;
-
-      const iFrom = indexOf.get(t.from) ?? 0;
-      const iTo = indexOf.get(t.to) ?? 0;
+    const edges: Edge[] = grouped.map((g) => {
+      const iFrom = indexOf.get(g.from) ?? 0;
+      const iTo = indexOf.get(g.to) ?? 0;
       const dist = Math.abs(iFrom - iTo);
 
-      const isLoop = t.from === t.to;
-      const isEps = t.symbol === "ε";
-      const isReversePair = hasReverse.get(unorderedKey(t.from, t.to)) === true;
+      const isLoop = g.from === g.to;
+      const isEps = g.hasEps;
+      const isReversePair = hasReverse.get(unorderedKey(g.from, g.to)) === true;
 
       const baseStyle: CSSProperties = {
         stroke: "#334155",
@@ -231,81 +259,80 @@ function GraphCanvas({ nfa, interactive = false }: { nfa: NFA; interactive?: boo
         ...(isEps ? { strokeDasharray: "6 4" } : null),
       };
 
-      // ----- 1) self-loop -----
+      const label = formatLabel(g.symbols);
+
+      /* 1) Self-Loop */
       if (isLoop) {
         return {
-          id: `${t.from}-${t.symbol}-${t.to}-${order}`,
-          source: t.from,
-          target: t.to,
+          id: `${g.from}->${g.to}`,
+          source: g.from,
+          target: g.to,
           type: "offsetBezier",
           sourceHandle: "right-s",
           targetHandle: "top-t",
-          data: { offset: -70 - order * 20 },
+          data: { offset: -70 },
           animated: true,
           markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18 },
-          label: t.symbol,
+          label,
           style: baseStyle,
           labelStyle,
         };
       }
 
-      // ----- 2) spanning edge (跨越边 dist>1): force arc UP by default -----
-      // If you prefer some spanning edges arc DOWN, you can add conditions here.
+      /* 2) Sprungkante (dist > 1): Bogen nach oben */
       if (dist > 1) {
-        const offset = -140 - order * 25 - (isEps ? 25 : 0);
+        const offset = -140 - (isEps ? 25 : 0);
         return {
-          id: `${t.from}-${t.symbol}-${t.to}-${order}`,
-          source: t.from,
-          target: t.to,
+          id: `${g.from}->${g.to}`,
+          source: g.from,
+          target: g.to,
           type: "offsetBezier",
           sourceHandle: "top-s",
           targetHandle: "top-t",
           data: { offset },
           animated: true,
           markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18 },
-          label: t.symbol,
+          label,
           style: baseStyle,
           labelStyle,
         };
       }
 
-      // ----- 3) reverse pair (相反方向边): split up/down -----
+      /* 3) Reverse-Paar: oben/unten trennen */
       if (isReversePair) {
-        // smallIndex -> largeIndex goes UP; reverse goes DOWN
         const forward = iFrom < iTo;
-        const offset = (forward ? -80 : 80) + order * (forward ? -15 : 15);
+        const offset = forward ? -80 : 80;
 
         return {
-          id: `${t.from}-${t.symbol}-${t.to}-${order}`,
-          source: t.from,
-          target: t.to,
+          id: `${g.from}->${g.to}`,
+          source: g.from,
+          target: g.to,
           type: "offsetBezier",
           sourceHandle: forward ? "top-s" : "bottom-s",
           targetHandle: forward ? "top-t" : "bottom-t",
           data: { offset },
           animated: true,
           markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18 },
-          label: t.symbol,
+          label,
           style: baseStyle,
           labelStyle,
         };
       }
 
-      // ----- 4) normal adjacent edge -----
-      // epsilon gets small upward bend to avoid perfect overlap
-      const offset = (isEps ? -55 : 0) + order * -18;
+      /* 4) Normale Nachbarkante */
+      const offset = isEps ? -55 : 0;
 
       return {
-        id: `${t.from}-${t.symbol}-${t.to}-${order}`,
-        source: t.from,
-        target: t.to,
+        id: `${g.from}->${g.to}`,
+        source: g.from,
+        target: g.to,
         type: "offsetBezier",
         sourceHandle: "right-s",
         targetHandle: "left-t",
         data: { offset },
         animated: true,
         markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18 },
-        label: t.symbol,
+        label,
         style: baseStyle,
         labelStyle,
       };
