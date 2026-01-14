@@ -161,7 +161,7 @@ function StateNode({ data }: { data: { id: string; isStart?: boolean; isAccept?:
 const nodeTypes = { state: StateNode };
 
 /* ---------------- Wrapper ---------------- */
-export default function GraphViewer({ nfa, interactive = false }: ViewerProps) {
+export default function GraphViewer({ nfa, interactive = true }: ViewerProps) {
   if (!nfa) {
     return (
       <div className="border p-4 h-[480px] rounded-xl grid place-items-center text-gray-500">
