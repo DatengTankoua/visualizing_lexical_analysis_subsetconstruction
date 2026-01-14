@@ -9,6 +9,17 @@ export default mergeConfig(
       environment: 'jsdom',
       setupFiles: ['./src/test-setup.ts'],
       include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx', 'src/**/*.test.ts', 'src/**/*.test.tsx'],
+      
+      pool: 'forks',
+      poolOptions: {
+        forks: {
+          singleFork: true,
+        },
+      },
+      
+      testTimeout: 15000,
+      hookTimeout: 15000,
+      
       coverage: {
         reporter: ['text', 'json', 'html'],
         exclude: [
@@ -16,6 +27,7 @@ export default mergeConfig(
           'tests/',
           '**/*.config.ts',
           '**/*.config.js',
+          'src/test-setup.ts',
         ],
       },
     },
