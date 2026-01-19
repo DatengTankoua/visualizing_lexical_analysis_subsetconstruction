@@ -435,6 +435,23 @@ function parseStateToken(token: string, lineNumber: number): {
 }
 
 /**
+ * Extrahiert alle Symbole aus einem regulären Ausdruck
+ * Entfernt Operatoren wie *, +, |, (, ), .
+ */
+function extractSymbolsFromRegex(regex: string): string[] {
+  // Entferne alle Regex-Operatoren und Meta-Zeichen
+  const symbols = regex
+    .replace(/[*+?|().[\]{}\\]/g, ' ')  // Ersetze Operatoren mit Leerzeichen
+    .split(/\s+/)                         // Splitte bei Leerzeichen
+    .filter(s => s.length > 0)            // Entferne leere Strings
+    .flatMap(s => s.split(''))            // Splitte in einzelne Zeichen
+    .filter(s => s !== 'ε');              // Entferne Epsilon
+  
+  // Dedupliziere und sortiere
+  return [...new Set(symbols)].sort();
+}
+
+/**
  * Finalisiert ein NFA und validiert es
  */
 function finalizeNFA(nfa: NFA): void {
@@ -460,6 +477,22 @@ function finalizeNFA(nfa: NFA): void {
   // REGEL 4: Mindestens eine Transition erforderlich
   if (nfa.transitions.length === 0) {
     throw new DSLParseError('Keine Transitionen definiert');
+  }
+
+  // REGEL 4a: Wenn Regex definiert ist, validiere Symbole gegen Regex
+  if (nfa.regex) {
+    const regexSymbols = extractSymbolsFromRegex(nfa.regex);
+    
+    // Prüfe jedes Symbol im Alphabet
+    for (const symbol of nfa.alphabet) {
+      if (!regexSymbols.includes(symbol)) {
+        throw new DSLParseError(
+          `Symbol "${symbol}" wird in Transitionen verwendet, kommt aber nicht in der Regex vor. ` +
+          `Regex: "${nfa.regex}" ` +
+          `Erlaubte Symbole aus Regex: ${regexSymbols.length > 0 ? regexSymbols.join(', ') : '(keine)'}`
+        );
+      }
+    }
   }
 
   // REGEL 5: Startzustand muss in der Zustandsliste sein
@@ -488,6 +521,16 @@ function finalizeNFA(nfa: NFA): void {
     if (!nfa.states.includes(transition.to)) {
       throw new DSLParseError(
         `Transition verwendet unbekannten Zustand: "${transition.to}"`
+      );
+    }
+  }
+
+  // REGEL 8: Alle Symbole in Transitionen müssen im Alphabet sein (außer Epsilon)
+  for (const transition of nfa.transitions) {
+    if (transition.symbol !== 'ε' && !nfa.alphabet.includes(transition.symbol)) {
+      throw new DSLParseError(
+        `Transition verwendet Symbol "${transition.symbol}", das nicht im Alphabet definiert ist. ` +
+        `Verfügbare Symbole: ${nfa.alphabet.length > 0 ? nfa.alphabet.join(', ') : '(leer)'}`
       );
     }
   }

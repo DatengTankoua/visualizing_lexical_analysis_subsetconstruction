@@ -313,4 +313,95 @@ q4 -1> q3;`;
       expect(result.nfa.hasEpsilon).toBe(true);
     });
   });
+
+  describe('parseDSL - Regex Symbol Validation', () => {
+    it('should accept symbols that are in regex', () => {
+      const input = `# @NAME Test
+# @REGEX (a|b)*c
+
+.q0 -a> q1 -b> q2 -c> (q3);`;
+
+      const result = parseDSL(input);
+
+      expect(result.success).toBe(true);
+      assertSuccess(result);
+      expect(result.nfa.alphabet).toEqual(['a', 'b', 'c']);
+    });
+
+    it('should reject symbol not in regex', () => {
+      const input = `# @NAME Test
+# @REGEX (a|b)*
+
+.q0 -a> q1 -x> (q2);`;
+
+      const result = parseDSL(input);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Symbol "x"');
+      expect(result.error).toContain('kommt aber nicht in der Regex vor');
+      expect(result.error).toContain('(a|b)*');
+    });
+
+    it('should work without regex defined', () => {
+      const input = `.q0 -a> q1 -b> (q2);`;
+
+      const result = parseDSL(input);
+
+      expect(result.success).toBe(true);
+      assertSuccess(result);
+      expect(result.nfa.alphabet).toEqual(['a', 'b']);
+    });
+
+    it('should ignore epsilon in regex validation', () => {
+      const input = `# @NAME Test
+# @REGEX a*b
+
+.q0 -a> q1 -ε> q2 -b> (q3);`;
+
+      const result = parseDSL(input);
+
+      expect(result.success).toBe(true);
+      assertSuccess(result);
+      expect(result.nfa.hasEpsilon).toBe(true);
+    });
+
+    it('should extract symbols from complex regex', () => {
+      const input = `# @NAME Test
+# @REGEX (1.(0.1)+)|(0.0)
+
+.q0 -1> q1 -0> (q2);`;
+
+      const result = parseDSL(input);
+
+      expect(result.success).toBe(true);
+      assertSuccess(result);
+      expect(result.nfa.alphabet).toEqual(['0', '1']);
+    });
+
+    it('should handle regex with special characters', () => {
+      const input = `# @NAME Test
+# @REGEX [a-z]+
+
+.q0 -a> q1 -z> (q2);`;
+
+      const result = parseDSL(input);
+
+      expect(result.success).toBe(true);
+      assertSuccess(result);
+      expect(result.nfa.alphabet).toEqual(['a', 'z']);
+    });
+
+    it('should reject when multiple symbols are wrong', () => {
+      const input = `# @NAME Test
+# @REGEX a*
+
+.q0 -a> q1 -b> q2 -c> (q3);`;
+
+      const result = parseDSL(input);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Symbol "b"');
+      expect(result.error).toContain('kommt aber nicht in der Regex vor');
+    });
+  });
 });
