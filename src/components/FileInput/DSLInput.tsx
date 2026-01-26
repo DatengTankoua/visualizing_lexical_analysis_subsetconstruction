@@ -9,6 +9,7 @@ interface Props {
 const EXAMPLE_FILES = [
   { value: '', label: 'Wählen Sie ein Beispiel...' },
   { value: 'example_nfa', label: 'Example NFA - mit ε' },
+  { value: 'example_nfa1', label: 'Example NFA - ohne ε' },
 ];
 
 export default function DSLInput({ onLoad, onParseResult }: Props) {
