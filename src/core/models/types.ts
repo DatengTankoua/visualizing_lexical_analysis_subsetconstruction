@@ -18,6 +18,8 @@ export interface NFA {
 }
 
 export interface DFA {
+  name?: string;
+  regex?: string;
   states: State[];
   alphabet: string[];
   startState: State;
