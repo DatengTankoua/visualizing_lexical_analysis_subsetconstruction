@@ -83,15 +83,19 @@ npm run dev
 
 ### 3.2 Zustandsnotationen
 
+**Wichtig:** Zustände müssen nur **einmal** markiert werden. Spätere Vorkommen ohne Markierung werden korrekt erkannt.
+
 **Startzustand (.):**
 ```
 .q0 -a> q1;
+q0 -b> q2;    # q0 bleibt Startzustand (ohne Punkt)
 ```
 Punkt vor dem Zustandsnamen markiert den Startzustand.
 
 **Akzeptierender Zustand (()):**
 ```
 q0 -a> (q1);
+q1 -b> q2;    # q1 bleibt Akzeptierend (ohne Klammern)
 ```
 Klammern um den Zustandsnamen markieren Akzeptanz.
 
@@ -166,7 +170,12 @@ q1 -c> q2 -ε> (q3);
 | `.dsl` | Domain Specific Language | `nfa.dsl` |
 | `.txt` | Text-Datei | `nfa.txt` |
 
-### 4.2 Größenbeschränkung
+### 4.2 Best Practices
+
+**Ein Automat pro Datei:**  
+Jede Datei sollte **genau einen NFA** enthalten. Mehrere Automaten in einer Datei werden nicht unterstützt.
+
+### 4.3 Größenbeschränkung
 
 **Maximum:** 1 MB (1.048.576 Bytes)
 
@@ -175,10 +184,10 @@ Größere Dateien werden mit folgender Fehlermeldung abgelehnt:
 Datei ist zu groß (X.XX MB). Maximale Größe: 1 MB
 ```
 
-### 4.3 Upload-Prozess
+### 4.4 Upload-Prozess
 
 1. Klicken Sie auf "📁 Datei hochladen"
-2. Wählen Sie eine `.aef`/`.dsl`/`.txt` Datei
+2. Wählen Sie eine `.aef`/`.dsl`/`.txt` Datei (ein Automat pro Datei)
 3. Der Inhalt wird automatisch in den Textbereich geladen
 4. Klicken Sie "▶ NFA laden" zum Parsen
 
@@ -266,14 +275,6 @@ q0 -a> q1
 ❌ Fehler: NFA muss mindestens einen akzeptierenden Zustand haben
 ```
 **Lösung:** Markieren Sie einen Zustand mit `(q1)`
-
-**Konsistenz-Fehler:**
-```
-❌ Inkonsistente Notation für Zustand 'q0':
-   - Zeile 3: (q0)
-   - Zeile 7: q0
-```
-**Lösung:** Verwenden Sie einheitliche Notation.
 
 **Leerzeichen in Zuständen:**
 ```

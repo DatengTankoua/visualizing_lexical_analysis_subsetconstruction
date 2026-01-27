@@ -19,11 +19,12 @@ Entwicklung einer interaktiven Webanwendung zur Visualisierung der Umwandlung vo
 - Interaktive Exploration von Automatentheorie-Konzepten
 
 ### 1.3 Funktionale Anforderungen
-1. Import von NFA-Definitionen im AEF-Format (maximal 1 MB)
-2. Visuelle Darstellung von NFAs als gerichtete Graphen
-3. Schrittweise Ausführung des Subset Construction Algorithmus
-4. Export der Ergebnisse (DFA-Definition)
-5. Unterstützung von Epsilon-Transitionen (ε-Übergänge)
+1. Import von NFA-Definitionen im AEF-Format (ein Automat pro Datei, maximal 1 MB)
+2. Flexible Zustandserkennung (einmalige Markierung mit `.` oder `()` reicht)
+3. Visuelle Darstellung von NFAs als gerichtete Graphen
+4. Schrittweise Ausführung des Subset Construction Algorithmus
+5. Export der Ergebnisse (DFA-Definition)
+6. Unterstützung von Epsilon-Transitionen (ε-Übergänge)
 
 ---
 
@@ -197,10 +198,12 @@ interface DFA {
 
 | Notation | Bedeutung | Beispiel |
 |----------|-----------|----------|
-| `.q0` | Startzustand | `.q0 -a> q1;` |
-| `(q1)` | Akzeptierender Zustand | `q0 -a> (q1);` |
+| `.q0` | Startzustand (einmalige Markierung reicht) | `.q0 -a> q1; q0 -b> q2;` |
+| `(q1)` | Akzeptierender Zustand (einmalige Markierung reicht) | `q0 -a> (q1); q1 -b> q2;` |
 | `(.q0)` | Start- und Akzeptierender Zustand | `(.q0) -a> q1;` |
 | `q0` | Normaler Zustand | `q0 -a> q1;` |
+
+**Regel:** Ein Automat pro Datei. Zustandsmarkierungen (`.` und `()`) müssen nur einmal vorkommen.
 
 ### 5.3 Beispiel
 

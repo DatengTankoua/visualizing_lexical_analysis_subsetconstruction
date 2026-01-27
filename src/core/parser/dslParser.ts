@@ -46,8 +46,8 @@ function parseAEFFormat(input: string): NFA {
   const nfa = createEmptyNFA();
   let hasTransitions = false;
   
-  // Tracking für konsistente Zustandsnotation
-  const stateNotations = new Map<string, { notation: string; line: number; isStart: boolean; isAccept: boolean }>();
+  // Tracking für Zustandsmarkierungen (einmalige Markierung reicht)
+  const stateMarkings = new Map<string, { isStart: boolean; isAccept: boolean; firstLine: number }>();
 
   for (const { content, number } of lines) {
     // Überspringe leere Zeilen
@@ -71,7 +71,7 @@ function parseAEFFormat(input: string): NFA {
 
     // Parse Transitionen im AEF-Format
     try {
-      parseTransitionLine(content, nfa, number, stateNotations);
+      parseTransitionLine(content, nfa, number, stateMarkings);
       hasTransitions = true;
     } catch (error) {
       if (error instanceof DSLParseError) {
@@ -113,18 +113,19 @@ function createEmptyNFA(): NFA {
  * 
  * Strikte Regeln:
  * - Zeile MUSS mit Semikolon (;) enden
- * - Startzustand MUSS mit . markiert sein (z.B. .q0)
- * - Endzustand MUSS in Klammern sein (z.B. (q5))
+ * - Startzustand wird mit . markiert (z.B. .q0) - einmalige Markierung reicht
+ * - Endzustand wird in Klammern gesetzt (z.B. (q5)) - einmalige Markierung reicht
  * - Symbole MÜSSEN Format -symbol> haben (keine Leerzeichen)
  * - Tokens MÜSSEN durch Leerzeichen getrennt sein
  * - Nur ε für Epsilon erlaubt (nicht "epsilon")
  * - Nur EIN Startzustand im gesamten NFA erlaubt
+ * - Ein Automat pro Datei
  */
 function parseTransitionLine(
   line: string, 
   nfa: NFA, 
   lineNumber: number,
-  stateNotations: Map<string, { notation: string; line: number; isStart: boolean; isAccept: boolean }>
+  stateMarkings: Map<string, { isStart: boolean; isAccept: boolean; firstLine: number }>
 ): void {
   // REGEL 1: Zeile MUSS mit Semikolon enden
   if (!line.endsWith(';')) {
@@ -215,47 +216,33 @@ function parseTransitionLine(
       // Dies ist ein Zustand
       const { stateName, isStart, isAccept } = parseStateToken(token, lineNumber);
       
-      // REGEL 7: Prüfe Konsistenz der Zustandsnotation
-      const existing = stateNotations.get(stateName);
+      // REGEL 7: Merke Zustandsmarkierungen (einmalige Markierung reicht)
+      const existing = stateMarkings.get(stateName);
       if (existing) {
-        // Zustand wurde bereits verwendet - prüfe Konsistenz
-        if (existing.notation !== token) {
-          throw new DSLParseError(
-            `Inkonsistente Notation für Zustand '${stateName}': ` +
-            `zuerst als '${existing.notation}' in Zeile ${existing.line} deklariert, ` +
-            `jetzt als '${token}' verwendet`,
-            lineNumber
-          );
+        // Zustand wurde bereits verwendet - übernehme gespeicherte Markierungen
+        // Wenn neue Markierungen gesetzt sind, werden sie übernommen
+        if (isStart && !existing.isStart) {
+          existing.isStart = true;
         }
-        // Prüfe Start/Akzeptierungs-Status-Konsistenz
-        if (existing.isStart !== isStart) {
-          throw new DSLParseError(
-            `Inkonsistente Startzustand-Markierung für '${stateName}': ` +
-            `${existing.isStart ? 'war' : 'war nicht'} Startzustand in Zeile ${existing.line}, ` +
-            `${isStart ? 'ist' : 'ist nicht'} jetzt Startzustand`,
-            lineNumber
-          );
-        }
-        if (existing.isAccept !== isAccept) {
-          throw new DSLParseError(
-            `Inkonsistente Akzeptierungszustand-Markierung für '${stateName}': ` +
-            `${existing.isAccept ? 'war' : 'war nicht'} Akzeptierungszustand in Zeile ${existing.line}, ` +
-            `${isAccept ? 'ist' : 'ist nicht'} jetzt Akzeptierungszustand`,
-            lineNumber
-          );
+        if (isAccept && !existing.isAccept) {
+          existing.isAccept = true;
         }
       } else {
-        // Erste Verwendung dieses Zustands - speichere Notation
-        stateNotations.set(stateName, {
-          notation: token,
-          line: lineNumber,
+        // Erste Verwendung dieses Zustands - speichere Markierungen
+        stateMarkings.set(stateName, {
           isStart,
-          isAccept
+          isAccept,
+          firstLine: lineNumber
         });
       }
       
+      // Nutze die globalen Markierungen (nicht die lokalen aus diesem Token)
+      const globalMarkings = stateMarkings.get(stateName)!;
+      const effectiveIsStart = globalMarkings.isStart;
+      const effectiveIsAccept = globalMarkings.isAccept;
+      
       // REGEL 8: Nur EIN Startzustand erlaubt
-      if (isStart) {
+      if (effectiveIsStart) {
         if (nfa.startState && nfa.startState !== stateName) {
           throw new DSLParseError(
             `Mehrere Startzustände gefunden: "${nfa.startState}" und "${stateName}". Nur ein Startzustand ist erlaubt`,
@@ -271,7 +258,7 @@ function parseTransitionLine(
       }
 
       // Füge zu akzeptierenden Zuständen hinzu
-      if (isAccept && !nfa.acceptStates.includes(stateName)) {
+      if (effectiveIsAccept && !nfa.acceptStates.includes(stateName)) {
         nfa.acceptStates.push(stateName);
       }
 

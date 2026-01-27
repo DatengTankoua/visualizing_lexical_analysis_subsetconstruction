@@ -184,24 +184,51 @@ describe('dslParser', () => {
     });
   });
 
-  describe('parseDSL - Consistency Validation', () => {
-    it('should reject inconsistent state notation', () => {
+  describe('parseDSL - Flexible State Notation', () => {
+    it('should allow state without marking after initial marking with dot', () => {
       const input = `.q0 -a> q1;
 q0 -b> (q2);`;
 
       const result = parseDSL(input);
 
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('Inkonsistente Notation');
+      expect(result.success).toBe(true);
+      assertSuccess(result);
+      expect(result.nfa.startState).toBe('q0');
+      expect(result.nfa.states).toContain('q0');
     });
 
-    it('should allow consistent state notation', () => {
-      const input = `.q0 -a> q1;
+    it('should allow state without parentheses after initial accept marking', () => {
+      const input = `.q0 -a> (q1);
+q1 -b> q2;`;
+
+      const result = parseDSL(input);
+
+      expect(result.success).toBe(true);
+      assertSuccess(result);
+      expect(result.nfa.acceptStates).toContain('q1');
+    });
+
+    it('should recognize start state from any occurrence with dot', () => {
+      const input = `q0 -a> q1;
 .q0 -b> (q2);`;
 
       const result = parseDSL(input);
 
       expect(result.success).toBe(true);
+      assertSuccess(result);
+      expect(result.nfa.startState).toBe('q0');
+    });
+
+    it('should recognize accept state from any occurrence with parentheses', () => {
+      const input = `.q0 -a> q1;
+q1 -b> q2;
+q0 -c> (q1);`;
+
+      const result = parseDSL(input);
+
+      expect(result.success).toBe(true);
+      assertSuccess(result);
+      expect(result.nfa.acceptStates).toContain('q1');
     });
   });
 

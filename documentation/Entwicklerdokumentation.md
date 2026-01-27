@@ -133,12 +133,12 @@ function finalizeNFA(states, transitions, ...): NFA
 
 **Validierungsregeln:**
 1. Zeilen müssen mit `;` enden
-2. Genau ein Startzustand (`.`)
-3. Mindestens ein Akzeptierender Zustand `()`
+2. Genau ein Startzustand (`.`) - einmalige Markierung reicht
+3. Mindestens ein Akzeptierender Zustand `()` - einmalige Markierung reicht
 4. Korrekte Pfeil-Syntax `-symbol>`
-5. Konsistente Zustandsnotationen
-6. Keine Leerzeichen in Zustandsnamen
-7. Valide Epsilon-Symbole (nur `ε`)
+5. Keine Leerzeichen in Zustandsnamen
+6. Valide Epsilon-Symbole (nur `ε`)
+7. Ein Automat pro Datei
 
 **Beispiel-Nutzung:**
 ```typescript
@@ -278,6 +278,10 @@ interface ParsedLine {
   symbols: string[];
 }
 ```
+
+**Wichtig:** Der Parser merkt sich Zustandsmarkierungen:
+- `.q0` einmal → `q0` ist überall Startzustand
+- `(q3)` einmal → `q3` ist überall Akzeptierend
 
 ---
 
