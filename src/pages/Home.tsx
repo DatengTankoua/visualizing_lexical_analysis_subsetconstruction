@@ -67,8 +67,8 @@ export default function Home() {
         {parseResult && parseResult.success && nfa && (
           <div className="p-4 bg-green-50 border border-green-200 rounded">
             <h3 className="font-semibold text-green-800 mb-2">
-              ✓ NFA erfolgreich geladen
-              {nfa.name && ` - ${nfa.name}`}
+              NFA - Zusammenfassung
+              {nfa.name && <span className="font-normal"> · {nfa.name}</span>}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
               <div>
@@ -86,7 +86,7 @@ export default function Home() {
                 <span className="font-medium">Start:</span> {nfa.startState}
               </div>
               <div>
-                <span className="font-medium">Akzeptierend:</span>
+                <span className="font-medium">Akzeptierend:</span> {nfa.acceptStates.length}
                 <div className="text-gray-600">[{nfa.acceptStates.join(', ')}]</div>
               </div>
             </div>
@@ -110,8 +110,8 @@ export default function Home() {
         {dfa && (
           <div className="p-4 bg-purple-50 border border-purple-200 rounded">
             <h3 className="font-semibold text-purple-800 mb-2">
-              ✓ DFA konstruiert
-              {dfa.name && ` - ${dfa.name}`}
+              DFA - Zusammenfassung
+              {dfa.name && <span className="font-normal"> · {dfa.name}</span>}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
               <div>
@@ -126,14 +126,23 @@ export default function Home() {
                 <span className="font-medium">Start:</span> {dfa.startState}
               </div>
               <div>
-                <span className="font-medium">Akzeptierend:</span>
+                <span className="font-medium">Akzeptierend:</span> {dfa.acceptStates.length}
                 <div className="text-gray-600">[{dfa.acceptStates.join(', ')}]</div>
               </div>
             </div>
             <div className="mt-3">
               <span className="font-medium">Übergänge:</span> {dfa.transitions.length}
             </div>
-          </div>
+            {nfa && dfa && (
+              <div className="mt-2 text-sm text-purple-700">
+                <span className="font-medium">Zustandsvergleich(NFA → DFA):</span>{" "}
+                {nfa.states.length} → {dfa.states.length}
+                <span className="ml-2 text-purple-600">
+                  (×{(dfa.states.length / Math.max(1, nfa.states.length)).toFixed(2)})
+                  </span>
+                  </div>
+                )}
+            </div>
         )}
 
         {/* Step Controls */}
