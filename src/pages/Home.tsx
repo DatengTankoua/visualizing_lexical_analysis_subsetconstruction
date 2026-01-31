@@ -185,7 +185,7 @@ export default function Home() {
                 DFA (Schritt {currentStepIndex + 1}{steps.length > 0 ? ` / ${steps.length}` : ''})
               </h3>
               {dfa && currentStep ? (
-                <GraphViewer 
+                <GraphViewer
                   nfa={{
                     ...dfa,
                     states: currentStep.dfaStates.map(s => s.length === 1 ? s[0] : `{${s.join(',')}}`),
@@ -193,7 +193,7 @@ export default function Home() {
                     startState: dfa.startState,
                     acceptStates: dfa.acceptStates,
                     alphabet: dfa.alphabet,
-                  }} 
+                  }}
                 />
               ) : (
                 <div className="border h-[480px] rounded-xl grid place-items-center text-gray-500">
