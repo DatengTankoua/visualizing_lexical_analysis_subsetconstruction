@@ -173,7 +173,7 @@ export default function GraphViewer({ nfa, interactive = true }: ViewerProps) {
 }
 
 /* ---------------- Canvas ---------------- */
-function GraphCanvas({ nfa, interactive = false }: { nfa: NFA; interactive?: boolean }) {
+function GraphCanvas({ nfa, interactive = true }: { nfa: NFA; interactive?: boolean }) {
   const { states, startState, acceptStates, transitions } = nfa;
 
   const initial = useMemo(() => {
@@ -387,6 +387,7 @@ function GraphCanvas({ nfa, interactive = false }: { nfa: NFA; interactive?: boo
   return (
     <div className="border p-4 h-[520px] rounded-xl shadow-sm relative">
       <ReactFlow
+        className="touch-none"
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
@@ -396,13 +397,25 @@ function GraphCanvas({ nfa, interactive = false }: { nfa: NFA; interactive?: boo
         onConnect={onConnect}
         fitView
         fitViewOptions={{ padding: 0.45 }}
+        panOnDrag
+        zoomOnPinch
+        zoomOnScroll
+        zoomOnDoubleClick={false}
         nodesDraggable={interactive}
         nodesConnectable={interactive}
         elementsSelectable={interactive}
         proOptions={{ hideAttribution: true }}
         attributionPosition="bottom-left"
       >
-        <MiniMap nodeStrokeColor={() => "#111"} />
+        <div className="hidden md:block">
+          <MiniMap
+            position="bottom-left"
+            pannable
+            zoomable
+            nodeStrokeColor={() => "#111"}
+            style={{ zIndex: 50 }}
+          />
+        </div>
         <Controls />
         <Background gap={16} />
       </ReactFlow>
