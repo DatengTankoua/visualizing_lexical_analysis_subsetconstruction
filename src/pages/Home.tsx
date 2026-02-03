@@ -1,3 +1,4 @@
+import { useTranslate } from "@tolgee/react";
 import DSLInput from "../components/FileInput/DSLInput";
 import GraphViewer from "../components/GraphViewer/GraphViewer";
 import StepControls from "../components/Controls/StepControls";
@@ -7,8 +8,12 @@ import { convertNFAtoDFAWithSteps } from "../core/algorithm/subsetConstruction";
 import { useState, useMemo } from "react";
 import type { NFA, ParseResult, DFA } from "../core/models/types";
 import type { SubsetConstructionStep } from "../core/algorithm/subsetConstruction";
+import LanguageToggle from "../components/Controls/LanguageToggle";
+
+
 
 export default function Home() {
+  const { t } = useTranslate();
   const [nfa, setNfa] = useState<NFA | null>(null);
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
   const [currentStep, setCurrentStep] = useState<SubsetConstructionStep | null>(null);
@@ -47,7 +52,10 @@ export default function Home() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">NFA → DFA Visualizer</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">{t("home.title")}</h1>
+        <LanguageToggle />
+      </div>
       
       <div className="space-y-6">
         <DSLInput onLoad={handleLoad} onParseResult={handleParseResult} />
@@ -55,10 +63,10 @@ export default function Home() {
         {/* Fehleranzeige */}
         {parseResult && !parseResult.success && (
           <div className="p-4 bg-red-50 border border-red-200 rounded">
-            <h3 className="font-semibold text-red-800 mb-2">Parsing-Fehler</h3>
+            <h3 className="font-semibold text-red-800 mb-2">{t("errors.parsing.title")}</h3>
             <p className="text-red-700">{parseResult.error}</p>
             {parseResult.line && (
-              <p className="text-red-600 text-sm mt-1">Zeile {parseResult.line}</p>
+              <p className="text-red-600 text-sm mt-1">{t("errors.parsing.line")} {parseResult.line}</p>
             )}
           </div>
         )}
@@ -67,39 +75,39 @@ export default function Home() {
         {parseResult && parseResult.success && nfa && (
           <div className="p-4 bg-green-50 border border-green-200 rounded">
             <h3 className="font-semibold text-green-800 mb-2">
-              NFA - Zusammenfassung
+              {t("nfa.summary.title")}
               {nfa.name && <span className="font-normal"> · {nfa.name}</span>}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
               <div>
-                <span className="font-medium">Zustände:</span> {nfa.states.length}
+                <span className="font-medium">{t("labels.states")}:</span> {nfa.states.length}
                 <div className="text-gray-600">[{nfa.states.join(', ')}]</div>
               </div>
               <div>
-                <span className="font-medium">Alphabet:</span> {nfa.alphabet.length}
+                <span className="font-medium">{t("labels.alphabet")}:</span> {nfa.alphabet.length}
                 <div className="text-gray-600">
                   [{nfa.alphabet.join(', ')}]
                   {nfa.hasEpsilon && <span className="ml-1 text-purple-600">(+ε)</span>}
                 </div>
               </div>
               <div>
-                <span className="font-medium">Start:</span> {nfa.startState}
+                <span className="font-medium">{t("labels.start")}:</span> {nfa.startState}
               </div>
               <div>
-                <span className="font-medium">Akzeptierend:</span> {nfa.acceptStates.length}
+                <span className="font-medium">{t("labels.accepting")}:</span> {nfa.acceptStates.length}
                 <div className="text-gray-600">[{nfa.acceptStates.join(', ')}]</div>
               </div>
             </div>
             <div className="mt-3">
-              <span className="font-medium">Übergänge:</span> {nfa.transitions.length}
+              <span className="font-medium">{t("labels.transitions")}:</span> {nfa.transitions.length}
               {nfa.hasEpsilon && (
                 <span className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">
-                  mit ε-Übergängen
+                  {t("labels.withEpsilon")}
                 </span>
               )}
               {nfa.regex && (
                 <div className="text-gray-600 mt-1">
-                  <span className="font-medium">RegEx:</span> {nfa.regex}
+                  <span className="font-medium">{t("nfa.regex")}:</span> {nfa.regex}
                 </div>
               )}
             </div>
@@ -110,32 +118,32 @@ export default function Home() {
         {dfa && (
           <div className="p-4 bg-purple-50 border border-purple-200 rounded">
             <h3 className="font-semibold text-purple-800 mb-2">
-              DFA - Zusammenfassung
+              {t("dfa.summary.title")}
               {dfa.name && <span className="font-normal"> · {dfa.name}</span>}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
               <div>
-                <span className="font-medium">Zustände:</span> {dfa.states.length}
+                <span className="font-medium">{t("labels.states")}:</span> {dfa.states.length}
                 <div className="text-gray-600">[{dfa.states.join(', ')}]</div>
               </div>
               <div>
-                <span className="font-medium">Alphabet:</span> {dfa.alphabet.length}
+                <span className="font-medium">{t("labels.alphabet")}:</span> {dfa.alphabet.length}
                 <div className="text-gray-600">[{dfa.alphabet.join(', ')}]</div>
               </div>
               <div>
-                <span className="font-medium">Start:</span> {dfa.startState}
+                <span className="font-medium">{t("labels.start")}:</span> {dfa.startState}
               </div>
               <div>
-                <span className="font-medium">Akzeptierend:</span> {dfa.acceptStates.length}
+                <span className="font-medium">{t("labels.accepting")}:</span> {dfa.acceptStates.length}
                 <div className="text-gray-600">[{dfa.acceptStates.join(', ')}]</div>
               </div>
             </div>
             <div className="mt-3">
-              <span className="font-medium">Übergänge:</span> {dfa.transitions.length}
+              <span className="font-medium">{t("labels.transitions")}:</span> {dfa.transitions.length}
             </div>
             {nfa && dfa && (
               <div className="mt-2 text-sm text-purple-700">
-                <span className="font-medium">Zustandsvergleich(NFA → DFA):</span>{" "}
+                <span className="font-medium">{t("dfa.stateComparison")}:</span>{" "}
                 {nfa.states.length} → {dfa.states.length}
                 <span className="ml-2 text-purple-600">
                   (×{(dfa.states.length / Math.max(1, nfa.states.length)).toFixed(2)})
@@ -163,18 +171,18 @@ export default function Home() {
         )}
         
         <section className="mt-4">
-          <h2 className="mb-2 font-medium">Graphvisualisierung</h2>
+          <h2 className="mb-2 font-medium">{t("section.subset")}</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* NFA Graph */}
             <div>
               <h3 className="text-sm font-medium mb-2 text-gray-700 bg-green-100 px-3 py-1 rounded">
-                NFA (Original)
+                {t("graph.nfa.title")}
               </h3>
               {nfa ? (
                 <GraphViewer nfa={nfa} />
               ) : (
                 <div className="border h-[480px] rounded-xl grid place-items-center text-gray-500">
-                  NFA Visualisierung hier
+                  {t("graph.nfa.empty")}
                 </div>
               )}
             </div>
@@ -182,7 +190,8 @@ export default function Home() {
             {/* DFA Graph - Shows current step */}
             <div>
               <h3 className="text-sm font-medium mb-2 text-gray-700 bg-purple-100 px-3 py-1 rounded">
-                DFA (Schritt {currentStepIndex + 1}{steps.length > 0 ? ` / ${steps.length}` : ''})
+                {t("graph.dfa.step")} {currentStepIndex + 1}
+                {steps.length > 0 && ` / ${steps.length}`}
               </h3>
               {dfa && currentStep ? (
                 <GraphViewer
@@ -197,7 +206,7 @@ export default function Home() {
                 />
               ) : (
                 <div className="border h-[480px] rounded-xl grid place-items-center text-gray-500">
-                  DFA Visualisierung hier
+                  {t("graph.dfa.empty")}
                 </div>
               )}
             </div>

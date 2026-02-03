@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import type { SubsetConstructionStep } from "../../core/algorithm/subsetConstruction";
+import { useTranslate } from "@tolgee/react";
+
 
 interface StepControlsProps {
   steps: SubsetConstructionStep[];
@@ -7,6 +9,7 @@ interface StepControlsProps {
 }
 
 export default function StepControls({ steps, onStepChange }: StepControlsProps) {
+  const { t } = useTranslate();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1000);
@@ -38,7 +41,7 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
   if (steps.length === 0) {
     return (
       <div className="p-4 bg-gray-50 border rounded">
-        <p className="text-gray-500">Keine Schritte verfügbar</p>
+        <p className="text-gray-500">{t("controls.noSteps")}</p>
       </div>
     );
   }
@@ -49,9 +52,9 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Subset Construction</h2>
+        <h2 className="text-xl font-semibold">{t("controls.title")}</h2>
         <span className="text-sm text-gray-600">
-          Schritt {currentStepIndex + 1} / {steps.length}
+          {t("controls.stepCounter")} {currentStepIndex + 1} / {steps.length}
         </span>
       </div>
 
@@ -72,7 +75,7 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
           {currentStep.currentStateString && (
             <div>
-              <span className="font-medium text-gray-700">Aktueller Zustand:</span>
+              <span className="font-medium text-gray-700">{t("controls.currentState")}</span>
               <div className="text-blue-800 font-mono mt-1">
                 {currentStep.currentStateString}
               </div>
@@ -81,7 +84,7 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
 
           {currentStep.symbol && (
             <div>
-              <span className="font-medium text-gray-700">Symbol:</span>
+              <span className="font-medium text-gray-700">{t("controls.symbol")}</span>
               <div className="text-blue-800 font-mono mt-1">
                 {currentStep.symbol}
               </div>
@@ -90,7 +93,7 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
 
           {currentStep.moveResult && currentStep.moveResult.length > 0 && (
             <div>
-              <span className="font-medium text-gray-700">Move-Ergebnis:</span>
+              <span className="font-medium text-gray-700">{t("controls.moveResult")}</span>
               <div className="text-blue-800 font-mono mt-1">
                 {"{" + currentStep.moveResult.join(", ") + "}"}
               </div>
@@ -99,7 +102,7 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
 
           {currentStep.epsilonClosureResult && currentStep.epsilonClosureResult.length > 0 && (
             <div>
-              <span className="font-medium text-gray-700">ε-Abschluss:</span>
+              <span className="font-medium text-gray-700">{t("controls.epsilonClosure")}</span>
               <div className="text-blue-800 font-mono mt-1">
                 {"{" + currentStep.epsilonClosureResult.join(", ") + "}"}
               </div>
@@ -108,12 +111,12 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
 
           {currentStep.newDFAState && (
             <div>
-              <span className="font-medium text-gray-700">DFA-Zustand:</span>
+              <span className="font-medium text-gray-700">{t("controls.newDFAState")}</span>
               <div className="text-blue-800 font-mono mt-1 flex items-center gap-2">
                 {currentStep.newDFAState}
                 {currentStep.isNewState && (
                   <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">
-                    NEU
+                    {t("controls.new")}
                   </span>
                 )}
               </div>
@@ -125,19 +128,19 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
       {/* Statistics */}
       <div className="grid grid-cols-3 gap-3 text-sm">
         <div className="p-3 bg-white border rounded">
-          <div className="font-medium text-gray-700 mb-1">DFA-Zustände</div>
+          <div className="font-medium text-gray-700 mb-1">{t("controls.stats.dfaStates")}</div>
           <div className="text-2xl font-bold text-blue-600">
             {currentStep.dfaStates.length}
           </div>
         </div>
         <div className="p-3 bg-white border rounded">
-          <div className="font-medium text-gray-700 mb-1">Übergänge</div>
+          <div className="font-medium text-gray-700 mb-1">{t("controls.stats.transitions")}</div>
           <div className="text-2xl font-bold text-green-600">
             {currentStep.dfaTransitions.length}
           </div>
         </div>
         <div className="p-3 bg-white border rounded">
-          <div className="font-medium text-gray-700 mb-1">Unmarkiert</div>
+          <div className="font-medium text-gray-700 mb-1">{t("controls.stats.unmarked")}</div>
           <div className="text-2xl font-bold text-orange-600">
             {currentStep.unmarkedStates.length}
           </div>
@@ -148,10 +151,10 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
       {currentStep.isComplete && (
         <div className="p-4 bg-green-50 border border-green-200 rounded">
           <h4 className="font-semibold text-green-800 flex items-center gap-2">
-            ✓ Konstruktion abgeschlossen!
+            ✓ {t("controls.complete.title")}
           </h4>
           <p className="text-sm text-green-700 mt-1">
-            DFA mit {currentStep.dfaStates.length} Zuständen und {currentStep.dfaTransitions.length} Übergängen konstruiert.
+            {t("controls.complete.text")} {currentStep.dfaStates.length} {t("controls.complete.statesAnd")} {currentStep.dfaTransitions.length} {t("controls.complete.transitionsSuffix")}
           </p>
         </div>
       )}
@@ -163,9 +166,9 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
             onClick={() => { setCurrentStepIndex(0); setIsPlaying(false); }}
             disabled={currentStepIndex === 0}
             className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-            title="Zum Anfang"
+            title={t("controls.buttons.toStart")}
           >
-            ⏮️ Anfang
+            ⏮️ {t("controls.buttons.start")}
           </button>
           
           <button
@@ -173,7 +176,7 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
             disabled={currentStepIndex === 0}
             className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
-            ⬅️ Zurück
+            ⬅️ {t("controls.buttons.back")}
           </button>
           
           <button
@@ -185,7 +188,7 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
               isPlaying ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
             } text-white`}
           >
-            {isPlaying ? "⏸️ Pause" : "▶️ Abspielen"}
+            {isPlaying ? `⏸️ ${t("controls.buttons.pause")}` : `▶️ ${t("controls.buttons.play")}`}
           </button>
           
           <button
@@ -193,36 +196,36 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
             disabled={currentStepIndex >= steps.length - 1}
             className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
-            Weiter ➡️
+            {t("controls.buttons.next")} ➡️
           </button>
           
           <button
             onClick={() => { setCurrentStepIndex(steps.length - 1); setIsPlaying(false); }}
             disabled={currentStepIndex >= steps.length - 1}
             className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-            title="Zum Ende"
+            title={t("controls.buttons.toEnd")}
           >
-            Ende ⏭️
+            {t("controls.buttons.end")} ⏭️
           </button>
         </div>
 
         <div className="flex items-center gap-2 ml-auto">
-          <label className="text-sm text-gray-700">Geschwindigkeit:</label>
+          <label className="text-sm text-gray-700">{t("controls.speed.label")}</label>
           <select
             value={speed}
             onChange={(e) => setSpeed(Number(e.target.value))}
             className="px-2 py-1 border rounded text-sm"
           >
-            <option value={2000}>Langsam (2s)</option>
-            <option value={1000}>Normal (1s)</option>
-            <option value={500}>Schnell (0.5s)</option>
+            <option value={2000}>{t("controls.speed.slow")}</option>
+            <option value={1000}>{t("controls.speed.normal")}</option>
+            <option value={500}>{t("controls.speed.fast")}</option>
           </select>
         </div>
       </div>
 
       {/* Step Slider */}
       <div className="flex items-center gap-3">
-        <span className="text-sm text-gray-600 min-w-[60px]">Schritt:</span>
+        <span className="text-sm text-gray-600 min-w-[60px]">{t("controls.stepLabel")}:</span>
         <input
           type="range"
           min={0}

@@ -1,21 +1,25 @@
 import { useState } from "react";
 import type { ParseResult } from "../../core/models/types";
+import { useTranslate } from "@tolgee/react";
 
 interface Props {
   onLoad: (text: string) => void;
   onParseResult: (result: ParseResult) => void;
 }
 
-const EXAMPLE_FILES = [
-  { value: '', label: 'Wählen Sie ein Beispiel...' },
-  { value: 'example_nfa', label: 'Example NFA - mit ε' },
-  { value: 'example_nfa1', label: 'Example NFA - ohne ε' },
-];
-
 export default function DSLInput({ onLoad, onParseResult }: Props) {
+  const { t } = useTranslate();
   const [text, setText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedExample, setSelectedExample] = useState("");
+  const [fileName, setFileName] = useState<string>("");
+
+
+  const EXAMPLE_FILES = [
+    { value: '', label: t("input.example.placeholder")},
+    { value: 'example_nfa', label: t("input.example.nfa_withEps") },
+    { value: 'example_nfa1', label: t("input.example.nfa_withoutEps") },
+  ];
 
   const handleLoad = async () => {
     if (!text.trim()) {
@@ -43,10 +47,11 @@ export default function DSLInput({ onLoad, onParseResult }: Props) {
     if (file.size > maxSize) {
       onParseResult({
         success: false,
-        error: `Datei ist zu groß (${(file.size / 1024 / 1024).toFixed(2)} MB). Maximale Größe: 1 MB`
+        error: t("input.errors.fileTooLarge", { size: `${(file.size / 1024 / 1024).toFixed(2)} MB`, maxSize: "1 MB" })
       });
       return;
     }
+    setFileName(file.name);
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -56,7 +61,7 @@ export default function DSLInput({ onLoad, onParseResult }: Props) {
     reader.onerror = () => {
       onParseResult({
         success: false,
-        error: 'Fehler beim Lesen der Datei'
+        error: t("input.errors.fileRead"),
       });
     };
     reader.readAsText(file);
@@ -81,7 +86,7 @@ export default function DSLInput({ onLoad, onParseResult }: Props) {
     } catch (error) {
       onParseResult({
         success: false,
-        error: `Fehler beim Laden des Beispiels: ${error instanceof Error ? error.message : String(error)}`
+        error: t("input.errors.exampleLoad", { error: error instanceof Error ? error.message : String(error) })
       });
     } finally {
       setIsLoading(false);
@@ -92,29 +97,20 @@ export default function DSLInput({ onLoad, onParseResult }: Props) {
     <div className="p-4 border rounded space-y-4">
       <div>
         <label className="block text-sm font-medium mb-2">
-          DSL-Eingabe (AEF-Format):
+          {t("input.dsl.title")}
         </label>
         <textarea
           className="w-full h-40 border p-3 rounded font-mono text-sm"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Fügen Sie hier Ihre DSL ein... 
-
-AEF-Format Beispiel:
-# @NAME Example1_NFA
-# @REGEX (1.(0.1)+)|(0.0)
-
-.q0 -1> q1 -0> q2 -1> q3 -0> q4;
-q3 -ε> (q5);
-.q0 -0> q6 -0> (q5);
-q4 -1> q3;"
+          placeholder={t("input.dsl.placeholder")}
         />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div className="bg-purple-50 border border-purple-200 px-3 py-2 rounded">
           <label className="block text-xs font-medium text-purple-900 mb-1">
-            📁 Beispiel laden:
+            📁 {t("input.example.label")}
           </label>
           <select
             value={selectedExample}
@@ -132,15 +128,34 @@ q4 -1> q3;"
 
         <div className="bg-violet-50 border border-violet-200 px-3 py-2 rounded">
           <label className="block text-xs font-medium text-violet-900 mb-1">
-            📤 Datei hochladen:
+            📤 {t("input.file.label")}
           </label>
           <input
+            id="dsl-file"
             type="file"
             accept=".aef,.dsl,.txt"
             onChange={handleFileUpload}
-            className="w-full text-sm"
+            className="hidden"
+            disabled={isLoading}
           />
         </div>
+
+        <label
+          htmlFor="dsl-file"
+          className={`inline-flex items-center gap-2 px-3 py-1.5 border rounded text-sm cursor-pointer bg-white hover:bg-gray-50 ${
+            isLoading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          {t("input.file.choose")}
+        </label>
+
+        <span className="text-xs text-gray-600 truncate">
+          {fileName ? fileName : t("input.file.none")}
+        </span>
+       </div>
+      <div>
+
+
 
         <div className="bg-blue-50 border border-blue-200 px-3 py-2 rounded flex items-center">
           <button
@@ -148,7 +163,7 @@ q4 -1> q3;"
             disabled={isLoading || !text.trim()}
             className="w-full px-4 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
           >
-            {isLoading ? '⏳ Lädt...' : '🚀 NFA laden'}
+            {isLoading ? t("input.actions.loading") : t("input.actions.loadNfa")}
           </button>
         </div>
       </div>

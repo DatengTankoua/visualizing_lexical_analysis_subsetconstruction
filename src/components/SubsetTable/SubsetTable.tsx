@@ -1,4 +1,5 @@
 import type { SubsetConstructionStep } from "../../core/algorithm/subsetConstruction";
+import { useTranslate } from "@tolgee/react";
 
 interface SubsetTableProps {
   step: SubsetConstructionStep;
@@ -7,6 +8,7 @@ interface SubsetTableProps {
 
 export default function SubsetTable({ step, alphabet }: SubsetTableProps) {
   // Erstelle Transitions-Mapping für schnellen Zugriff
+  const { t } = useTranslate();
   const transitionMap = new Map<string, string>();
   step.dfaTransitions.forEach(t => {
     const key = `${t.from}|${t.symbol}`;
@@ -35,17 +37,17 @@ export default function SubsetTable({ step, alphabet }: SubsetTableProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-lg font-semibold">Übergangstabelle</h3>
+      <h3 className="text-lg font-semibold">{t("table.title")}</h3>
       
       <div className="overflow-x-auto">
         <table className="min-w-full border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-100">
               <th className="border border-gray-300 px-4 py-2 text-left font-semibold">
-                Zustand
+                {t("table.headers.state")}
               </th>
               <th className="border border-gray-300 px-4 py-2 text-center font-semibold">
-                Status
+                {t("table.headers.status")}
               </th>
               {alphabet.map(symbol => (
                 <th key={symbol} className="border border-gray-300 px-4 py-2 text-center font-semibold">
@@ -72,17 +74,17 @@ export default function SubsetTable({ step, alphabet }: SubsetTableProps) {
                   <td className="border border-gray-300 px-4 py-2 font-mono font-medium">
                     {stateStr}
                     {current && (
-                      <span className="ml-2 text-xs text-blue-600">← aktuell</span>
+                      <span className="ml-2 text-xs text-blue-600">← {t("table.current")}</span>
                     )}
                   </td>
                   <td className="border border-gray-300 px-4 py-2 text-center">
                     {marked ? (
                       <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
-                        ✓ markiert
+                        ✓ {t("table.status.marked")}
                       </span>
                     ) : (
                       <span className="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded">
-                        ○ unmarkiert
+                        ○ {t("table.status.unmarked")}
                       </span>
                     )}
                   </td>
@@ -100,7 +102,7 @@ export default function SubsetTable({ step, alphabet }: SubsetTableProps) {
                           ${target ? 'text-gray-900' : 'text-gray-400'}
                         `}
                       >
-                        {target || '—'}
+                        {target || t("table.empty")}
                         {isCurrentTransition && target && (
                           <span className="ml-1 text-xs text-yellow-800">⚡</span>
                         )}
@@ -118,19 +120,19 @@ export default function SubsetTable({ step, alphabet }: SubsetTableProps) {
       <div className="flex flex-wrap gap-4 text-sm text-gray-600">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-blue-100 border-2 border-blue-500"></div>
-          <span>Aktueller Zustand</span>
+          <span>{t("table.legend.currentState")}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-yellow-200"></div>
-          <span>Aktuelle Transition (⚡)</span>
+          <span>{t("table.legend.currentTransition")}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-orange-50"></div>
-          <span>Unmarkiert (○)</span>
+          <span>{t("table.legend.unmarked")}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-white border border-gray-300"></div>
-          <span>Markiert (✓)</span>
+          <span>{t("table.legend.marked")}</span>
         </div>
       </div>
     </div>
