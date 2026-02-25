@@ -9,8 +9,7 @@ import { useState, useMemo } from "react";
 import type { NFA, ParseResult, DFA } from "../core/models/types";
 import type { SubsetConstructionStep } from "../core/algorithm/subsetConstruction";
 import LanguageToggle from "../components/Controls/LanguageToggle";
-
-
+import { exportDfaToAef } from "../core/export/exportAef";
 
 export default function Home() {
   const { t } = useTranslate();
@@ -27,6 +26,8 @@ export default function Home() {
 
   const dfa: DFA | null = conversionResult?.dfa || null;
   const steps = conversionResult?.steps || [];
+  const canExport = !!dfa && !!dfa.name && !!dfa.regex;
+
 
   const handleStepChange = (step: SubsetConstructionStep, index: number) => {
     setCurrentStep(step);
@@ -49,6 +50,21 @@ export default function Home() {
   const handleParseResult = (result: ParseResult) => {
     setParseResult(result);
   };
+  
+  const handleExport = () => {
+    if (!dfa) return;
+    const content = exportDfaToAef(dfa);
+    
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${dfa.name || "dfa"}.aef`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -117,10 +133,30 @@ export default function Home() {
         {/* DFA Info */}
         {dfa && (
           <div className="p-4 bg-purple-50 border border-purple-200 rounded">
-            <h3 className="font-semibold text-purple-800 mb-2">
-              {t("dfa.summary.title")}
-              {dfa.name && <span className="font-normal"> · {dfa.name}</span>}
-            </h3>
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-semibold text-purple-800">
+                {t("dfa.summary.title")}
+                {dfa.name && <span className="font-normal"> · {dfa.name}</span>}
+              </h3>
+              
+              <button
+               onClick={handleExport}
+               disabled={!canExport}
+               title={
+                canExport
+                ? "Export DFA as AEF"
+                : "Export nicht möglich: @NAME oder @REGEX fehlt  /  Export not possible: @NAME or @REGEX missing"
+              }
+              className={`px-3 py-1 text-sm rounded border transition-colors ${
+                canExport
+                  ? "border-purple-300 text-purple-700 hover:bg-purple-50"
+                  : "border-gray-200 text-gray-400 cursor-not-allowed"}
+              }`}
+              >
+                Export AEF
+              </button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
               <div>
                 <span className="font-medium">{t("labels.states")}:</span> {dfa.states.length}
