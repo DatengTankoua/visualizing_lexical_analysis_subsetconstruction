@@ -127,9 +127,27 @@ export default function DSLInput({ onLoad, onParseResult }: Props) {
         </div>
 
         <div className="bg-violet-50 border border-violet-200 px-3 py-2 rounded">
-          <label className="block text-xs font-medium text-violet-900 mb-1">
+          <span className="block text-xs font-medium text-violet-900 mb-2">
             📤 {t("input.file.label")}
-          </label>
+          </span>
+
+          <div className="flex items-center gap-3">
+            <label
+              htmlFor="dsl-file"
+              className={`inline-flex items-center gap-2 px-3 py-1.5 border rounded text-sm font-medium transition-colors
+                ${isLoading 
+                  ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200" 
+                  : "cursor-pointer bg-white text-violet-700 border-violet-200 hover:bg-violet-100 active:bg-violet-200"
+                }`}
+            >
+              {t("input.file.choose")}
+            </label>
+
+            <span className="text-xs text-gray-600 truncate flex-1 italic">
+              {fileName ? fileName : t("input.file.none")}
+            </span>
+          </div>
+
           <input
             id="dsl-file"
             type="file"
@@ -139,19 +157,6 @@ export default function DSLInput({ onLoad, onParseResult }: Props) {
             disabled={isLoading}
           />
         </div>
-
-        <label
-          htmlFor="dsl-file"
-          className={`inline-flex items-center gap-2 px-3 py-1.5 border rounded text-sm cursor-pointer bg-white hover:bg-gray-50 ${
-            isLoading ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-        >
-          {t("input.file.choose")}
-        </label>
-
-        <span className="text-xs text-gray-600 truncate">
-          {fileName ? fileName : t("input.file.none")}
-        </span>
        </div>
       <div>
 

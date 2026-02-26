@@ -2,6 +2,37 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import DSLInput from './DSLInput';
 
+vi.mock('@tolgee/react', () => ({
+  useTranslate: () => ({
+    t: (key: string, params?: Record<string, string>) => {
+      const translations: Record<string, string> = {
+        'input.example.placeholder': 'Wählen Sie ein Beispiel...',
+        'input.example.nfa_withEps': 'Example NFA - mit ε',
+        'input.example.nfa_withoutEps': 'Example NFA - ohne ε',
+        'input.errors.fileTooLarge': 'Datei ist zu groß: {size}. Maximale Dateigröße ist {maxSize}.',
+        'input.errors.fileRead': 'Fehler beim Lesen der Datei.',
+        'input.errors.exampleLoad': 'Fehler beim Laden des Beispiels.',
+        'input.dsl.title': 'DSL-Eingabe (AEF-Format)',
+        'input.dsl.placeholder': 'Fügen Sie hier Ihre DSL ein...',
+        'input.example.label': 'Beispiel laden',
+        'input.file.label': 'Datei hochladen',
+        'input.file.choose': 'Datei auswählen',
+        'input.file.none': 'Keine Datei ausgewählt',
+        'input.actions.loading': 'Laden...',
+        'input.actions.loadNfa': 'NFA laden',
+      };
+      const template = translations[key] ?? key;
+      if (params) {
+        return Object.entries(params).reduce(
+          (str, [k, v]) => str.replace(`{${k}}`, v),
+          template
+        );
+      }
+      return template;
+    },
+  }),
+}));
+
 describe('DSLInput Component', () => {
   const mockOnLoad = vi.fn();
   const mockOnParseResult = vi.fn();

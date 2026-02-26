@@ -1,7 +1,35 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import SubsetTable from './SubsetTable';
 import type { SubsetConstructionStep } from '../../core/algorithm/subsetConstruction';
+
+vi.mock('@tolgee/react', () => ({
+  useTranslate: () => ({
+    t: (key: string, params?: Record<string, string>) => {
+      const translations: Record<string, string> = {
+        'table.title': 'Übergangstabelle',
+        'table.headers.state': 'Zustand',
+        'table.headers.status': 'Status',
+        'table.current': 'aktuell',
+        'table.status.marked': 'markiert',
+        'table.status.unmarked': 'unmarkiert',
+        'table.empty': '—',
+        'table.legend.currentState': 'Aktueller Zustand',
+        'table.legend.currentTransition': 'Aktuelle Transition',
+        'table.legend.unmarked': 'Unmarkiert',
+        'table.legend.marked': 'Markiert',
+      };
+      const template = translations[key] ?? key;
+      if (params) {
+        return Object.entries(params).reduce(
+          (str, [k, v]) => str.replace(`{${k}}`, v),
+          template
+        );
+      }
+      return template;
+    },
+  }),
+}));
 
 const createMockStep = (overrides?: Partial<SubsetConstructionStep>): SubsetConstructionStep => ({
   stepNumber: 0,
