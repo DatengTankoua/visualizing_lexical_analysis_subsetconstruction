@@ -149,7 +149,7 @@ export default function Home() {
               }
               className={`px-3 py-1 text-sm rounded border transition-colors ${
                 canExport
-                  ? "border-purple-300 text-purple-700 hover:bg-purple-50"
+                  ? "border-purple-300 text-purple-700 hover:bg-purple-500 hover:text-white"
                   : "border-gray-200 text-gray-400 cursor-not-allowed"}
               }`}
               >

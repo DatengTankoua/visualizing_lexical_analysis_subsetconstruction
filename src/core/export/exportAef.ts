@@ -17,6 +17,7 @@ export function exportDfaToAef(dfa: DFA): string {
   }
 
   const lines: string[] = [];
+  const alreadyExportedStates: Set<string> = new Set<string>();
 
   // ---- Metadaten ----
   // Falls intern "_DFA" angehängt wurde → beim Export wieder entfernen
@@ -37,6 +38,10 @@ export function exportDfaToAef(dfa: DFA): string {
 
 const formatTarget = (state: string) => {
   const normalized = normalizeState(state);
+  if(alreadyExportedStates.has(state)) {
+    return normalized;
+  }
+  alreadyExportedStates.add(state);
   return dfa.acceptStates.includes(state)
     ? `(${normalized})`
     : normalized;
@@ -46,26 +51,19 @@ const formatFrom = (state: string) => {
   const normalized = normalizeState(state);
   const isStart = state === dfa.startState;
   const isAccept = dfa.acceptStates.includes(state);
-
+  
+  if(alreadyExportedStates.has(state)) {
+    return normalized;
+  }
+  alreadyExportedStates.add(state);
   if (isStart && isAccept) return `(.${normalized})`;
   if (isStart) return `.${normalized}`;
   return normalized;
 };
 
-// ---- Zeilen exportieren: nur Zustände mit mindestens einer Transition ----
-  for (const state of dfa.states) {
-    const stateTransitions = transitionsByState[state] || [];
-    if (stateTransitions.length === 0) {
-      // Keine Transitionen → keine Zeile exportieren (Parser-Regel)
-      continue;
-    }
-
-    let line = formatFrom(state);
-
-    for (const t of stateTransitions) {
-      line += ` -${t.symbol}> ${formatTarget(t.to)}`;
-    }
-
+// ---- Zeilen exportieren ----
+  for (const t of dfa.transitions) {
+    let line = `${formatFrom(t.from)} -${t.symbol}> ${formatTarget(t.to)}`;
     line += ";";
     lines.push(line);
   }
