@@ -12,7 +12,6 @@ export function exportDfaToAef(dfa: DFA): string {
   if (!dfa.name) {
     throw new Error("DFA hat kein @NAME Feld");
   }
-
   if (!dfa.regex) {
     throw new Error("DFA hat kein @REGEX Feld");
   }
@@ -21,9 +20,7 @@ export function exportDfaToAef(dfa: DFA): string {
 
   // ---- Metadaten ----
   // Falls intern "_DFA" angehängt wurde → beim Export wieder entfernen
-  const exportName = dfa.name.endsWith("_DFA")
-    ? dfa.name.slice(0, -4)
-    : dfa.name;
+  const exportName = dfa.name.endsWith("_DFA") ? dfa.name.slice(0, -4) : dfa.name;
 
   lines.push(`# @NAME ${exportName}`);
   lines.push(`# @REGEX ${dfa.regex}`);
@@ -31,34 +28,42 @@ export function exportDfaToAef(dfa: DFA): string {
 
   // ---- Transitionen gruppieren ----
   const transitionsByState: Record<string, Transition[]> = {};
-
   for (const transition of dfa.transitions) {
-    if (!transitionsByState[transition.from]) {
-      transitionsByState[transition.from] = [];
-    }
-    transitionsByState[transition.from].push(transition);
+    (transitionsByState[transition.from] ??= []).push(transition);
   }
 
-  // ---- Zustände exportieren ----
+  const normalizeState = (state: string) =>
+  state.replace(/[{}]/g, "").replace(/,/g, "_");
+
+const formatTarget = (state: string) => {
+  const normalized = normalizeState(state);
+  return dfa.acceptStates.includes(state)
+    ? `(${normalized})`
+    : normalized;
+};
+
+const formatFrom = (state: string) => {
+  const normalized = normalizeState(state);
+  const isStart = state === dfa.startState;
+  const isAccept = dfa.acceptStates.includes(state);
+
+  if (isStart && isAccept) return `(.${normalized})`;
+  if (isStart) return `.${normalized}`;
+  return normalized;
+};
+
+// ---- Zeilen exportieren: nur Zustände mit mindestens einer Transition ----
   for (const state of dfa.states) {
     const stateTransitions = transitionsByState[state] || [];
-
-    let stateToken = state;
-
-    // Startzustand markieren
-    if (state === dfa.startState) {
-      stateToken = `.${stateToken}`;
+    if (stateTransitions.length === 0) {
+      // Keine Transitionen → keine Zeile exportieren (Parser-Regel)
+      continue;
     }
 
-    // Akzeptierzustand markieren
-    if (dfa.acceptStates.includes(state)) {
-      stateToken = `(${stateToken})`;
-    }
-
-    let line = stateToken;
+    let line = formatFrom(state);
 
     for (const t of stateTransitions) {
-      line += ` -${t.symbol}> ${t.to}`;
+      line += ` -${t.symbol}> ${formatTarget(t.to)}`;
     }
 
     line += ";";
