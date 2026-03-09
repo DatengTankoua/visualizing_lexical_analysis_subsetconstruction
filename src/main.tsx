@@ -11,8 +11,8 @@ const tolgee = Tolgee()
   .use(DevTools())
   .use(FormatSimple())
   .init({
-    language: "de",
-    fallbackLanguage: "en",
+    language: "en",
+    fallbackLanguage: "de",
     
     apiUrl: import.meta.env.VITE_TOLGEE_API_URL,
     apiKey: import.meta.env.VITE_TOLGEE_API_KEY,

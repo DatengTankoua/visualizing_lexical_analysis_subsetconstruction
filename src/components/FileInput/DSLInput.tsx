@@ -126,8 +126,8 @@ export default function DSLInput({ onLoad, onParseResult }: Props) {
           </select>
         </div>
 
-        <div className="bg-violet-50 border border-violet-200 px-3 py-2 rounded">
-          <span className="block text-xs font-medium text-violet-900 mb-2">
+        <div className="bg-purple-50 border border-purple-200 px-3 py-2 rounded">
+          <span className="block text-xs font-medium text-purple-900 mb-2">
             📤 {t("input.file.label")}
           </span>
 
@@ -137,7 +137,7 @@ export default function DSLInput({ onLoad, onParseResult }: Props) {
               className={`inline-flex items-center gap-2 px-3 py-1.5 border rounded text-sm font-medium transition-colors
                 ${isLoading 
                   ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200" 
-                  : "cursor-pointer bg-white text-violet-700 border-violet-200 hover:bg-violet-100 active:bg-violet-200"
+                  : "cursor-pointer bg-white text-purple-700 border-purple-200 hover:bg-purple-100 active:bg-purple-200"
                 }`}
             >
               {t("input.file.choose")}

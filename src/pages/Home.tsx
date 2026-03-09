@@ -9,6 +9,7 @@ import { useState, useMemo } from "react";
 import type { NFA, ParseResult, DFA } from "../core/models/types";
 import type { SubsetConstructionStep } from "../core/algorithm/subsetConstruction";
 import LanguageToggle from "../components/Controls/LanguageToggle";
+import HighContrastToggle from "../components/Controls/HighContrastToggle";
 import { exportDfaToAef } from "../core/export/exportAef";
 
 export default function Home() {
@@ -70,7 +71,10 @@ export default function Home() {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">{t("home.title")}</h1>
-        <LanguageToggle />
+        <div className="flex items-center gap-2">
+          <HighContrastToggle />
+          <LanguageToggle />
+        </div>
       </div>
       
       <div className="space-y-6">
