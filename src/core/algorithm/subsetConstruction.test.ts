@@ -125,7 +125,7 @@ describe('subsetConstruction', () => {
       const result = convertNFAtoDFAWithSteps(nfa);
 
       expect(result.steps[0]).toBeDefined();
-      expect(result.steps[0].description).toContain('Initialisierung');
+      expect(result.steps[0].description).toContain('Initialization');
       expect(result.steps[0].stepNumber).toBe(0);
     });
 
@@ -199,7 +199,7 @@ describe('subsetConstruction', () => {
       const result = convertNFAtoDFAWithSteps(nfa);
 
       const transitionSteps = result.steps.filter(s => 
-        s.description.includes('Transition hinzugefügt')
+        s.description.includes('Transition added')
       );
       expect(transitionSteps.length).toBeGreaterThan(0);
     });
@@ -219,7 +219,7 @@ describe('subsetConstruction', () => {
 
       const lastStep = result.steps[result.steps.length - 1];
       expect(lastStep.isComplete).toBe(true);
-      expect(lastStep.description).toContain('Fertig');
+      expect(lastStep.description).toContain('Done');
     });
 
     it('should track marked and unmarked states', () => {

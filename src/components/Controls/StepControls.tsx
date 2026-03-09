@@ -141,7 +141,7 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
         </div>
         <div className="p-3 bg-white border rounded">
           <div className="font-medium text-gray-700 mb-1">{t("controls.stats.unmarked")}</div>
-          <div className="text-2xl font-bold text-orange-600">
+          <div className="text-2xl font-bold text-purple-600">
             {currentStep.unmarkedStates.length}
           </div>
         </div>

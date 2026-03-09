@@ -67,7 +67,7 @@ export default function SubsetTable({ step, alphabet }: SubsetTableProps) {
                   key={idx}
                   className={`
                     ${current ? 'bg-blue-100 border-2 border-blue-500' : ''}
-                    ${!current && !marked ? 'bg-orange-50' : ''}
+                    ${!current && !marked ? 'bg-purple-50' : ''}
                     hover:bg-blue-50 transition-colors
                   `}
                 >
@@ -83,7 +83,7 @@ export default function SubsetTable({ step, alphabet }: SubsetTableProps) {
                         ✓ {t("table.status.marked")}
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded">
+                      <span className="inline-flex items-center px-2 py-1 bg-purple-50 text-purple-800 text-xs rounded">
                         ○ {t("table.status.unmarked")}
                       </span>
                     )}
@@ -127,7 +127,7 @@ export default function SubsetTable({ step, alphabet }: SubsetTableProps) {
           <span>{t("table.legend.currentTransition")}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-orange-50"></div>
+          <div className="w-4 h-4 bg-purple-50"></div>
           <span>{t("table.legend.unmarked")}</span>
         </div>
         <div className="flex items-center gap-2">
