@@ -143,7 +143,7 @@ describe('dslParser', () => {
       const result = parseDSL(input);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Semikolon');
+      expect(result.error).toContain('semicolon');
     });
 
     it('should require at least one start state', () => {
@@ -152,7 +152,7 @@ describe('dslParser', () => {
       const result = parseDSL(input);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Startzustand');
+      expect(result.error).toContain('start state');
     });
 
     it('should reject multiple start states', () => {
@@ -162,7 +162,7 @@ describe('dslParser', () => {
       const result = parseDSL(input);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Mehrere Startzustände');
+      expect(result.error).toContain('Multiple start states');
     });
 
     it('should require at least one accept state', () => {
@@ -171,7 +171,7 @@ describe('dslParser', () => {
       const result = parseDSL(input);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('akzeptierend');
+      expect(result.error).toContain('accepting');
     });
 
     it('should reject empty arrow format', () => {
@@ -257,7 +257,7 @@ q1 -b> (q2);`;
       const result = parseDSL(input);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Zwei aufeinanderfolgende Zustände');
+      expect(result.error).toContain('Two consecutive states');
     });
   });
 
@@ -365,7 +365,7 @@ q4 -1> q3;`;
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('Symbol "x"');
-      expect(result.error).toContain('kommt aber nicht in der Regex vor');
+      expect(result.error).toContain('does not appear in the regex');
       expect(result.error).toContain('(a|b)*');
     });
 
@@ -428,7 +428,7 @@ q4 -1> q3;`;
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('Symbol "b"');
-      expect(result.error).toContain('kommt aber nicht in der Regex vor');
+      expect(result.error).toContain('does not appear in the regex');
     });
   });
 });

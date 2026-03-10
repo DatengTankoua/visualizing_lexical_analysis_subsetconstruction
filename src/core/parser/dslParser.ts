@@ -77,13 +77,13 @@ function parseAEFFormat(input: string): NFA {
       if (error instanceof DSLParseError) {
         throw error;
       }
-      throw new DSLParseError(`Fehler beim Parsen der Zeile: ${content}`, number);
+      throw new DSLParseError(`Error parsing line: ${content}`, number);
     }
   }
 
   // Validiere NFA
   if (!hasTransitions) {
-    throw new DSLParseError('Keine Transitionen gefunden');
+    throw new DSLParseError('No transitions found');
   }
   
   finalizeNFA(nfa);
@@ -130,7 +130,7 @@ function parseTransitionLine(
   // REGEL 1: Zeile MUSS mit Semikolon enden
   if (!line.endsWith(';')) {
     throw new DSLParseError(
-      `Zeile muss mit Semikolon (;) enden. Gefunden: "${line}"`,
+      `Line must end with semicolon (;). Found: "${line}"`,
       lineNumber
     );
   }
@@ -139,7 +139,7 @@ function parseTransitionLine(
   line = line.slice(0, -1).trim();
   
   if (!line) {
-    throw new DSLParseError(`Leere Zeile (nur Semikolon)`, lineNumber);
+    throw new DSLParseError(`Empty line (only semicolon)`, lineNumber);
   }
 
   // REGEL 2: Prüfe auf ungültige Formate BEVOR wir tokenisieren
@@ -149,7 +149,7 @@ function parseTransitionLine(
   const tokens = line.split(/\s+/).filter(t => t.length > 0);
   
   if (tokens.length === 0) {
-    throw new DSLParseError(`Keine gültigen Tokens gefunden`, lineNumber);
+    throw new DSLParseError(`No valid tokens found`, lineNumber);
   }
 
   let currentState: string | null = null;
@@ -162,7 +162,7 @@ function parseTransitionLine(
     // REGEL 3: Prüfe Symbol-Format
     if (token.match(/^-[^>]+-?$/)) {
       throw new DSLParseError(
-        `Ungültiges Symbol-Format: "${token}". Erwartet: -symbol> (keine Leerzeichen)`,
+        `Invalid symbol format: "${token}". Expected: -symbol> (no spaces)`,
         lineNumber
       );
     }
@@ -173,13 +173,13 @@ function parseTransitionLine(
       
       // REGEL 4: Prüfe auf leeres Symbol
       if (symbol.length === 0) {
-        throw new DSLParseError(`Leeres Symbol gefunden: "->"`, lineNumber);
+        throw new DSLParseError(`Empty symbol found: "->"`, lineNumber);
       }
       
       // REGEL 5: Prüfe auf Leerzeichen im Symbol
       if (symbol.includes(' ')) {
         throw new DSLParseError(
-          `Symbol darf keine Leerzeichen enthalten: "${token}"`,
+          `Symbol must not contain spaces: "${token}"`,
           lineNumber
         );
       }
@@ -187,14 +187,14 @@ function parseTransitionLine(
       // REGEL 6: Nur ε erlaubt, nicht "epsilon"
       if (symbol === 'epsilon') {
         throw new DSLParseError(
-          `Verwenden Sie 'ε' statt 'epsilon' für Epsilon-Übergänge`,
+          `Use 'ε' instead of 'epsilon' for epsilon transitions`,
           lineNumber
         );
       }
       
       if (!currentState) {
         throw new DSLParseError(
-          `Symbol '${symbol}' ohne Ausgangszustand gefunden`,
+          `Symbol '${symbol}' found without source state`,
           lineNumber
         );
       }
@@ -245,7 +245,7 @@ function parseTransitionLine(
       if (effectiveIsStart) {
         if (nfa.startState && nfa.startState !== stateName) {
           throw new DSLParseError(
-            `Mehrere Startzustände gefunden: "${nfa.startState}" und "${stateName}". Nur ein Startzustand ist erlaubt`,
+            `Multiple start states found: "${nfa.startState}" and "${stateName}". Only one start state is allowed`,
             lineNumber
           );
         }
@@ -286,8 +286,8 @@ function parseTransitionLine(
       } else if (currentState) {
         // REGEL: Zwei aufeinanderfolgende Zustände ohne Symbol dazwischen sind ungültig
         throw new DSLParseError(
-          `Zwei aufeinanderfolgende Zustände ohne Transition gefunden: "${currentState}" und "${stateName}". ` +
-          `Erwarte Symbol zwischen Zuständen (z.B. ${currentState} -a> ${stateName})`,
+          `Two consecutive states without transition found: "${currentState}" and "${stateName}". ` +
+          `Expected symbol between states (e.g. ${currentState} -a> ${stateName})`,
           lineNumber
         );
       }
@@ -300,14 +300,14 @@ function parseTransitionLine(
   // REGEL 9: Zeile muss mindestens eine Transition enthalten
   if (!hasAnyTransition) {
     throw new DSLParseError(
-      `Zeile enthält keine Transitionen. Erwartet: Zustand -symbol> Zustand`,
+      `Line contains no transitions. Expected: state -symbol> state`,
       lineNumber
     );
   }
 
   if (pendingSymbols.length > 0) {
     throw new DSLParseError(
-      `Symbole ${pendingSymbols.join(', ')} ohne Zielzustand`,
+      `Symbols ${pendingSymbols.join(', ')} without target state`,
       lineNumber
     );
   }
@@ -322,7 +322,7 @@ function validateLineFormat(line: string, lineNumber: number): void {
   // -> (leeres Symbol)
   if (line.includes('->')) {
     throw new DSLParseError(
-      `Ungültiges Format "->". Symbol darf nicht leer sein`,
+      `Invalid format "->". Symbol must not be empty`,
       lineNumber
     );
   }
@@ -331,7 +331,7 @@ function validateLineFormat(line: string, lineNumber: number): void {
   const invalidSymbolPattern = /-[^\s>]+(?:\s|$)/;
   if (invalidSymbolPattern.test(line)) {
     throw new DSLParseError(
-      `Ungültiges Symbol-Format gefunden. Erwartet: -symbol> (mit >)`,
+      `Invalid symbol format found. Expected: -symbol> (with >)`,
       lineNumber
     );
   }
@@ -340,7 +340,7 @@ function validateLineFormat(line: string, lineNumber: number): void {
   const missingDashPattern = /(?:^|\s)[^-.\s(][^\s]*>/;
   if (missingDashPattern.test(line)) {
     throw new DSLParseError(
-      `Ungültiges Symbol-Format gefunden. Symbol muss mit - beginnen: -symbol>`,
+      `Invalid symbol format found. Symbol must start with -: -symbol>`,
       lineNumber
     );
   }
@@ -371,7 +371,7 @@ function parseStateToken(token: string, lineNumber: number): {
     // Validiere Klammer-Format
     if (!stateName) {
       throw new DSLParseError(
-        `Leerer Zustandsname in Klammern: "${token}"`,
+        `Empty state name in parentheses: "${token}"`,
         lineNumber
       );
     }
@@ -383,7 +383,7 @@ function parseStateToken(token: string, lineNumber: number): {
       
       if (!stateName) {
         throw new DSLParseError(
-          `Leerer Zustandsname nach Punkt in Klammern: "${token}"`,
+          `Empty state name after dot in parentheses: "${token}"`,
           lineNumber
         );
       }
@@ -397,7 +397,7 @@ function parseStateToken(token: string, lineNumber: number): {
   // REGEL: Zustandsname darf keine Leerzeichen enthalten
   if (stateName.includes(' ')) {
     throw new DSLParseError(
-      `Zustandsname darf keine Leerzeichen enthalten: "${stateName}"`,
+      `State name must not contain spaces: "${stateName}"`,
       lineNumber
     );
   }
@@ -405,7 +405,7 @@ function parseStateToken(token: string, lineNumber: number): {
   // REGEL: Zustandsname darf nicht leer sein
   if (stateName.length === 0) {
     throw new DSLParseError(
-      `Leerer Zustandsname gefunden: "${token}"`,
+      `Empty state name found: "${token}"`,
       lineNumber
     );
   }
@@ -413,7 +413,7 @@ function parseStateToken(token: string, lineNumber: number): {
   // Prüfe auf ungültige Zeichen
   if (!stateName.match(/^[\w∅]+$/)) {
     throw new DSLParseError(
-      `Ungültiger Zustandsname: "${stateName}". Erlaubt sind nur Buchstaben, Zahlen, Unterstriche und ∅`,
+      `Invalid state name: "${stateName}". Only letters, numbers, underscores and ∅ are allowed`,
       lineNumber
     );
   }
@@ -444,26 +444,26 @@ function extractSymbolsFromRegex(regex: string): string[] {
 function finalizeNFA(nfa: NFA): void {
   // REGEL 1: Mindestens ein Zustand erforderlich
   if (nfa.states.length === 0) {
-    throw new DSLParseError('Keine Zustände definiert');
+    throw new DSLParseError('No states defined');
   }
   
   // REGEL 2: Genau EIN Startzustand erforderlich (nicht optional!)
   if (!nfa.startState) {
     throw new DSLParseError(
-      'Kein Startzustand definiert. Markieren Sie einen Zustand mit . (z.B. .q0)'
+      'No start state defined. Mark a state with . (e.g. .q0)'
     );
   }
   
   // REGEL 3: Mindestens ein akzeptierender Zustand erforderlich
   if (nfa.acceptStates.length === 0) {
     throw new DSLParseError(
-      'Keine akzeptierenden Zustände definiert. Setzen Sie mindestens einen Zustand in Klammern (z.B. (q2))'
+      'No accepting states defined. Put at least one state in parentheses (e.g. (q2))'
     );
   }
 
   // REGEL 4: Mindestens eine Transition erforderlich
   if (nfa.transitions.length === 0) {
-    throw new DSLParseError('Keine Transitionen definiert');
+    throw new DSLParseError('No transitions defined');
   }
 
   // REGEL 4a: Wenn Regex definiert ist, validiere Symbole gegen Regex
@@ -474,9 +474,9 @@ function finalizeNFA(nfa: NFA): void {
     for (const symbol of nfa.alphabet) {
       if (!regexSymbols.includes(symbol)) {
         throw new DSLParseError(
-          `Symbol "${symbol}" wird in Transitionen verwendet, kommt aber nicht in der Regex vor. ` +
+          `Symbol "${symbol}" is used in transitions but does not appear in the regex. ` +
           `Regex: "${nfa.regex}" ` +
-          `Erlaubte Symbole aus Regex: ${regexSymbols.length > 0 ? regexSymbols.join(', ') : '(keine)'}`
+          `Allowed symbols from regex: ${regexSymbols.length > 0 ? regexSymbols.join(', ') : '(none)'}`
         );
       }
     }
@@ -485,7 +485,7 @@ function finalizeNFA(nfa: NFA): void {
   // REGEL 5: Startzustand muss in der Zustandsliste sein
   if (!nfa.states.includes(nfa.startState)) {
     throw new DSLParseError(
-      `Startzustand "${nfa.startState}" existiert nicht in der Zustandsliste`
+      `Start state "${nfa.startState}" does not exist in the state list`
     );
   }
 
@@ -493,7 +493,7 @@ function finalizeNFA(nfa: NFA): void {
   for (const acceptState of nfa.acceptStates) {
     if (!nfa.states.includes(acceptState)) {
       throw new DSLParseError(
-        `Akzeptierender Zustand "${acceptState}" existiert nicht in der Zustandsliste`
+        `Accepting state "${acceptState}" does not exist in the state list`
       );
     }
   }
@@ -502,12 +502,12 @@ function finalizeNFA(nfa: NFA): void {
   for (const transition of nfa.transitions) {
     if (!nfa.states.includes(transition.from)) {
       throw new DSLParseError(
-        `Transition verwendet unbekannten Zustand: "${transition.from}"`
+        `Transition uses unknown state: "${transition.from}"`
       );
     }
     if (!nfa.states.includes(transition.to)) {
       throw new DSLParseError(
-        `Transition verwendet unbekannten Zustand: "${transition.to}"`
+        `Transition uses unknown state: "${transition.to}"`
       );
     }
   }
@@ -516,8 +516,8 @@ function finalizeNFA(nfa: NFA): void {
   for (const transition of nfa.transitions) {
     if (transition.symbol !== 'ε' && !nfa.alphabet.includes(transition.symbol)) {
       throw new DSLParseError(
-        `Transition verwendet Symbol "${transition.symbol}", das nicht im Alphabet definiert ist. ` +
-        `Verfügbare Symbole: ${nfa.alphabet.length > 0 ? nfa.alphabet.join(', ') : '(leer)'}`
+        `Transition uses symbol "${transition.symbol}" which is not defined in the alphabet. ` +
+        `Available symbols: ${nfa.alphabet.length > 0 ? nfa.alphabet.join(', ') : '(empty)'}`
       );
     }
   }
