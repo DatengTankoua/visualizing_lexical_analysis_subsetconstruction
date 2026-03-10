@@ -166,6 +166,7 @@ html.high-contrast *:focus-visible {
 html.high-contrast [class*="rounded"],
 html.high-contrast [class*="border"] {
   border-color: #fff !important;
+  color: #000;
 }
 
 /* Graph SVG */
