@@ -85,7 +85,7 @@ describe('SubsetTable', () => {
 
     render(<SubsetTable step={step} alphabet={['a']} />);
     
-    expect(screen.getAllByText('{q0,q1}').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('q0_q1').length).toBeGreaterThanOrEqual(1);
   });
 
   it('should display empty state as ∅', () => {
@@ -230,7 +230,7 @@ describe('SubsetTable', () => {
 
     render(<SubsetTable step={step} alphabet={['a']} />);
     
-    expect(screen.getAllByText('{q0,q1,q2}').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('q0_q1_q2').length).toBeGreaterThanOrEqual(1);
   });
 
   it('should handle transitions between composite states', () => {
@@ -239,13 +239,13 @@ describe('SubsetTable', () => {
       currentState: ['q0'],
       markedStates: [['q0']],
       dfaTransitions: [
-        { from: 'q0', symbol: 'a', to: '{q0,q1}' },
+        { from: 'q0', symbol: 'a', to: 'q0_q1' },
       ],
     });
 
     render(<SubsetTable step={step} alphabet={['a']} />);
     
-    const compositeStates = screen.getAllByText('{q0,q1}');
+    const compositeStates = screen.getAllByText('q0_q1');
     expect(compositeStates.length).toBeGreaterThanOrEqual(1);
   });
 

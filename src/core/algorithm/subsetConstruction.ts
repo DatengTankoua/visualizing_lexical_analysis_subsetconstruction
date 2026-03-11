@@ -347,7 +347,7 @@ function setsEqual(set1: string[], set2: string[]): boolean {
 
 /**
  * Konvertiert eine Menge von Zuständen in einen String-Repräsentation
- * Beispiel: ['q0', 'q1'] -> '{q0,q1}'
+ * Beispiel: ['q0', 'q1'] -> 'q0_q1'
  */
 function stateSetToString(states: string[]): string {
   if (states.length === 0) {
@@ -358,7 +358,7 @@ function stateSetToString(states: string[]): string {
     return states[0];
   }
   
-  return `{${states.join(',')}}`;
+  return `${states.join('_')}`;
 }
 
 /**
