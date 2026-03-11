@@ -90,9 +90,7 @@ build_app:
     - install_dependencies
   script:
     - 'echo "Building application..."'
-    - 'echo "Build started at $(date)"'
     - npm run build
-    - 'echo "Build completed at $(date)"'
     - 'echo "Build artifacts created in dist/"'
     - ls -lh dist/
     - 'echo "Application built successfully"'
@@ -113,7 +111,6 @@ deploy_preview:
     - build_app
   script:
     - 'echo "Deploying preview environment..."'
-    - 'echo "Preview URL would be: https://preview-${CI_MERGE_REQUEST_IID}.example.com"'
     - 'echo "Preview deployment completed"'
   environment:
     name: "preview/$CI_COMMIT_REF_NAME"
@@ -143,8 +140,6 @@ pages:
     - 'echo "Deploying to GitLab Pages..."'
     - rm -rf public
     - cp -r dist public
-    - 'echo "Application will be available at:"'
-    - 'echo "   https://<username>.gitlab.io/<project-name>/"'
     - 'echo "Deployment to GitLab Pages completed"'
   artifacts:
     paths:
