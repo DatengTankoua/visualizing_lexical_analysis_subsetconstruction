@@ -20,9 +20,9 @@ stages:
 install_dependencies:
   stage: install
   script:
-    - echo "Installing dependencies..."
+    - 'echo "Installing dependencies..."'
     - npm ci
-    - echo "Dependencies installed successfully"
+    - 'echo "Dependencies installed successfully"'
   artifacts:
     paths:
       - node_modules/
@@ -38,9 +38,9 @@ lint:
   dependencies:
     - install_dependencies
   script:
-    - echo "Running ESLint..."
+    - 'echo "Running ESLint..."'
     - npm run lint
-    - echo "Linting passed"
+    - 'echo "Linting passed"'
   only:
     - merge_requests
     - main
@@ -52,9 +52,9 @@ test:
   dependencies:
     - install_dependencies
   script:
-    - echo "Running unit tests..."
+    - 'echo "Running unit tests..."'
     - npm run test -- --run
-    - echo "All tests passed"
+    - 'echo "All tests passed"'
   coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
   only:
     - merge_requests
@@ -66,9 +66,9 @@ test_coverage:
   dependencies:
     - install_dependencies
   script:
-    - echo "Generating test coverage report..."
+    - 'echo "Generating test coverage report..."'
     - npm run test:coverage
-    - echo "Coverage report generated"
+    - 'echo "Coverage report generated"'
   artifacts:
     paths:
       - coverage/
@@ -89,13 +89,13 @@ build_app:
   dependencies:
     - install_dependencies
   script:
-    - echo "Building application..."
-    - echo "Build started at $(date)"
+    - 'echo "Building application..."'
+    - 'echo "Build started at $(date)"'
     - npm run build
-    - echo "Build completed at $(date)"
-    - echo "Build artifacts created in dist/"
+    - 'echo "Build completed at $(date)"'
+    - 'echo "Build artifacts created in dist/"'
     - ls -lh dist/
-    - echo "Application built successfully"
+    - 'echo "Application built successfully"'
   artifacts:
     paths:
       - dist/
@@ -112,12 +112,12 @@ deploy_preview:
   dependencies:
     - build_app
   script:
-    - echo "Deploying preview environment..."
-    - echo "Preview URL would be: https://preview-$CI_MERGE_REQUEST_IID.example.com"
-    - echo "Preview deployment completed"
+    - 'echo "Deploying preview environment..."'
+    - 'echo "Preview URL would be: https://preview-${CI_MERGE_REQUEST_IID}.example.com"'
+    - 'echo "Preview deployment completed"'
   environment:
-    name: preview/$CI_COMMIT_REF_NAME
-    url: https://preview-$CI_MERGE_REQUEST_IID.example.com
+    name: "preview/$CI_COMMIT_REF_NAME"
+    url: "https://preview-${CI_MERGE_REQUEST_IID}.example.com"
     on_stop: stop_preview
     auto_stop_in: 1 week
   only:
@@ -126,9 +126,9 @@ deploy_preview:
 stop_preview:
   stage: deploy
   script:
-    - echo "Stopping preview environment..."
+    - 'echo "Stopping preview environment..."'
   environment:
-    name: preview/$CI_COMMIT_REF_NAME
+    name: "preview/$CI_COMMIT_REF_NAME"
     action: stop
   when: manual
   only:
@@ -140,12 +140,12 @@ pages:
   dependencies:
     - build_app
   script:
-    - echo "Deploying to GitLab Pages..."
+    - 'echo "Deploying to GitLab Pages..."'
     - rm -rf public
     - cp -r dist public
-    - echo "Application will be available at:"
-    - echo "   https://<username>.gitlab.io/<project-name>/"
-    - echo "Deployment to GitLab Pages completed"
+    - 'echo "Application will be available at:"'
+    - 'echo "   https://<username>.gitlab.io/<project-name>/"'
+    - 'echo "Deployment to GitLab Pages completed"'
   artifacts:
     paths:
       - public
