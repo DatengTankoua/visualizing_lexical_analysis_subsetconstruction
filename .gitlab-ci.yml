@@ -1,25 +1,153 @@
 image: node:18
 
+# Cache für node_modules über Branches hinweg
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - node_modules/
+
+# Build-Phasen
 stages:
   - install
+  - lint
+  - test
   - build
+  - deploy
 
+# ==================== INSTALLATION ====================
 install_dependencies:
   stage: install
   script:
+    - 'echo "Installing dependencies..."'
     - npm ci
+    - 'echo "Dependencies installed successfully"'
   artifacts:
     paths:
       - node_modules/
     expire_in: 1 hour
+  only:
+    - merge_requests
+    - main
+    - develop
 
+# ==================== CODE QUALITY ====================
+lint:
+  stage: lint
+  dependencies:
+    - install_dependencies
+  script:
+    - 'echo "Running ESLint..."'
+    - npm run lint
+    - 'echo "Linting passed"'
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# ==================== TESTING ====================
+test:
+  stage: test
+  dependencies:
+    - install_dependencies
+  script:
+    - 'echo "Running unit tests..."'
+    - npm run test -- --run
+    - 'echo "All tests passed"'
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  only:
+    - merge_requests
+    - main
+    - develop
+
+test_coverage:
+  stage: test
+  dependencies:
+    - install_dependencies
+  script:
+    - 'echo "Generating test coverage report..."'
+    - npm run test:coverage
+    - 'echo "Coverage report generated"'
+  artifacts:
+    paths:
+      - coverage/
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+    expire_in: 1 week
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# ==================== BUILD ====================
 build_app:
   stage: build
   dependencies:
     - install_dependencies
   script:
+    - 'echo "Building application..."'
+    - 'echo "Build started at $(date)"'
     - npm run build
+    - 'echo "Build completed at $(date)"'
+    - 'echo "Build artifacts created in dist/"'
+    - ls -lh dist/
+    - 'echo "Application built successfully"'
   artifacts:
     paths:
       - dist/
-    expire_in: 1 week
+    expire_in: 1 month
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# ==================== DEPLOYMENT ====================
+# Preview Deployment (für Merge Requests)
+deploy_preview:
+  stage: deploy
+  dependencies:
+    - build_app
+  script:
+    - 'echo "Deploying preview environment..."'
+    - 'echo "Preview URL would be: https://preview-${CI_MERGE_REQUEST_IID}.example.com"'
+    - 'echo "Preview deployment completed"'
+  environment:
+    name: "preview/$CI_COMMIT_REF_NAME"
+    url: "https://preview-${CI_MERGE_REQUEST_IID}.example.com"
+    on_stop: stop_preview
+    auto_stop_in: 1 week
+  only:
+    - merge_requests
+
+stop_preview:
+  stage: deploy
+  script:
+    - 'echo "Stopping preview environment..."'
+  environment:
+    name: "preview/$CI_COMMIT_REF_NAME"
+    action: stop
+  when: manual
+  only:
+    - merge_requests
+
+# Production Deployment (GitLab Pages)
+pages:
+  stage: deploy
+  dependencies:
+    - build_app
+  script:
+    - 'echo "Deploying to GitLab Pages..."'
+    - rm -rf public
+    - cp -r dist public
+    - 'echo "Application will be available at:"'
+    - 'echo "   https://<username>.gitlab.io/<project-name>/"'
+    - 'echo "Deployment to GitLab Pages completed"'
+  artifacts:
+    paths:
+      - public
+  only:
+    - main

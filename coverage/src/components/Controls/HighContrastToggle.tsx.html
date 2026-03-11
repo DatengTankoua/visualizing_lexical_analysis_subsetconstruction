@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for src/components/Controls/LanguageToggle.tsx</title>
+    <title>Code coverage report for src/components/Controls/HighContrastToggle.tsx</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../../prettify.css" />
     <link rel="stylesheet" href="../../../base.css" />
@@ -19,13 +19,13 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../../index.html">All files</a> / <a href="index.html">src/components/Controls</a> LanguageToggle.tsx</h1>
+        <h1><a href="../../../index.html">All files</a> / <a href="index.html">src/components/Controls</a> HighContrastToggle.tsx</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/16</span>
+                <span class='fraction'>0/26</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/16</span>
+                <span class='fraction'>0/26</span>
             </div>
         
             
@@ -85,48 +85,75 @@
 <a name='L20'></a><a href='#L20'>20</a>
 <a name='L21'></a><a href='#L21'>21</a>
 <a name='L22'></a><a href='#L22'>22</a>
-<a name='L23'></a><a href='#L23'>23</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { useTolgee } from "@tolgee/react";</span></span></span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { useState, useEffect } from "react";</span></span></span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >export default function LanguageToggle() {</span>
-<span class="cstat-no" title="statement not covered" >  const tolgee = useTolgee(["language"]);</span>
-<span class="cstat-no" title="statement not covered" >  const lang = tolgee.getLanguage();</span>
+<span class="cstat-no" title="statement not covered" >export default function HighContrastToggle() {</span>
+<span class="cstat-no" title="statement not covered" >  const [active, setActive] = useState&lt;boolean&gt;(() =&gt;</span>
+<span class="cstat-no" title="statement not covered" >    document.documentElement.classList.contains("high-contrast")</span>
+<span class="cstat-no" title="statement not covered" >  );</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  const cls = (active: boolean) =&gt;</span>
-<span class="cstat-no" title="statement not covered" >    `px-2 py-1 border rounded text-sm transition ${</span>
-<span class="cstat-no" title="statement not covered" >      active ? "bg-gray-200" : "hover:bg-gray-100"</span>
-<span class="cstat-no" title="statement not covered" >    }`;</span>
+<span class="cstat-no" title="statement not covered" >  useEffect(() =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    if (active) {</span>
+<span class="cstat-no" title="statement not covered" >      document.documentElement.classList.add("high-contrast");</span>
+<span class="cstat-no" title="statement not covered" >    } else {</span>
+<span class="cstat-no" title="statement not covered" >      document.documentElement.classList.remove("high-contrast");</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >  }, [active]);</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
-<span class="cstat-no" title="statement not covered" >    &lt;div className="flex items-center gap-2"&gt;</span>
-<span class="cstat-no" title="statement not covered" >      &lt;button className={cls(lang === "de")} onClick={() =&gt; tolgee.changeLanguage("de")}&gt;</span>
-        DE
-<span class="cstat-no" title="statement not covered" >      &lt;/button&gt;</span>
-<span class="cstat-no" title="statement not covered" >      &lt;button className={cls(lang === "en")} onClick={() =&gt; tolgee.changeLanguage("en")}&gt;</span>
-        EN
-<span class="cstat-no" title="statement not covered" >      &lt;/button&gt;</span>
-<span class="cstat-no" title="statement not covered" >    &lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >    &lt;button</span>
+<span class="cstat-no" title="statement not covered" >      aria-pressed={active}</span>
+<span class="cstat-no" title="statement not covered" >      aria-label={active ? "Disable high contrast mode" : "Enable high contrast mode"}</span>
+<span class="cstat-no" title="statement not covered" >      title={active ? "High contrast: ON" : "High contrast: OFF"}</span>
+<span class="cstat-no" title="statement not covered" >      onClick={() =&gt; setActive((prev) =&gt; !prev)}</span>
+<span class="cstat-no" title="statement not covered" >      className={`px-2 py-1 border rounded text-sm transition font-medium ${</span>
+<span class="cstat-no" title="statement not covered" >        active</span>
+<span class="cstat-no" title="statement not covered" >          ? "bg-yellow-300 text-black border-yellow-500"</span>
+<span class="cstat-no" title="statement not covered" >          : "hover:bg-gray-100 border-gray-300"</span>
+<span class="cstat-no" title="statement not covered" >      }`}</span>
+<span class="cstat-no" title="statement not covered" >    &gt;</span>
+      ◑ HC
+<span class="cstat-no" title="statement not covered" >    &lt;/button&gt;</span>
   );
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;</pre></td></tr></table></pre>
