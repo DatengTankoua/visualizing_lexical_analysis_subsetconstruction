@@ -32,7 +32,7 @@ export default function SubsetTable({ step, alphabet }: SubsetTableProps) {
   const stateToString = (state: string[]) => {
     if (state.length === 0) return '∅';
     if (state.length === 1) return state[0];
-    return `{${state.join(',')}}`;
+    return `${state.join('_')}`;
   };
 
   return (

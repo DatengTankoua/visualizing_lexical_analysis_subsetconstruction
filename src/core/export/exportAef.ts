@@ -33,32 +33,27 @@ export function exportDfaToAef(dfa: DFA): string {
     (transitionsByState[transition.from] ??= []).push(transition);
   }
 
-  const normalizeState = (state: string) =>
-  state.replace(/[{}]/g, "").replace(/,/g, "_");
-
 const formatTarget = (state: string) => {
-  const normalized = normalizeState(state);
   if(alreadyExportedStates.has(state)) {
-    return normalized;
+    return state;
   }
   alreadyExportedStates.add(state);
   return dfa.acceptStates.includes(state)
-    ? `(${normalized})`
-    : normalized;
+    ? `(${state})`
+    : state;
 };
 
 const formatFrom = (state: string) => {
-  const normalized = normalizeState(state);
   const isStart = state === dfa.startState;
   const isAccept = dfa.acceptStates.includes(state);
   
   if(alreadyExportedStates.has(state)) {
-    return normalized;
+    return state;
   }
   alreadyExportedStates.add(state);
-  if (isStart && isAccept) return `(.${normalized})`;
-  if (isStart) return `.${normalized}`;
-  return normalized;
+  if (isStart && isAccept) return `(.${state})`;
+  if (isStart) return `.${state}`;
+  return state;
 };
 
 // ---- Zeilen exportieren ----
