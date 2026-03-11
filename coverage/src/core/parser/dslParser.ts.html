@@ -30,9 +30,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">77.68% </span>
+                <span class="strong">77.11% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>94/121</span>
+                <span class='fraction'>91/118</span>
             </div>
         
             
@@ -820,7 +820,7 @@
 <span class="cline-any cline-yes">103x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">314x</span>
+<span class="cline-any cline-yes">316x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">213x</span>
 <span class="cline-any cline-yes">213x</span>
@@ -1198,13 +1198,13 @@ function parseAEFFormat(input: string): NFA {
       if (error instanceof DSLParseError) {
         throw error;
 <span class="branch-0 cbranch-no" title="branch not covered" >      }</span>
-<span class="cstat-no" title="statement not covered" >      throw new DSLParseError(`Fehler beim Parsen der Zeile: ${content}`, number);</span>
+<span class="cstat-no" title="statement not covered" >      throw new DSLParseError(`Error parsing line: ${content}`, number);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
   }
 &nbsp;
   // Validiere NFA
   if (!hasTransitions) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
-<span class="cstat-no" title="statement not covered" >    throw new DSLParseError('Keine Transitionen gefunden');</span>
+<span class="cstat-no" title="statement not covered" >    throw new DSLParseError('No transitions found');</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
   
   finalizeNFA(nfa);
@@ -1251,7 +1251,7 @@ function parseTransitionLine(
   // REGEL 1: Zeile MUSS mit Semikolon enden
   if (!line.endsWith(';')) {
     throw new DSLParseError(
-      `Zeile muss mit Semikolon (;) enden. Gefunden: "${line}"`,
+      `Line must end with semicolon (;). Found: "${line}"`,
       lineNumber
     );
   }
@@ -1260,7 +1260,7 @@ function parseTransitionLine(
   line = line.slice(0, -1).trim();
   
   if (!line) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
-<span class="cstat-no" title="statement not covered" >    throw new DSLParseError(`Leere Zeile (nur Semikolon)`, lineNumber);</span>
+<span class="cstat-no" title="statement not covered" >    throw new DSLParseError(`Empty line (only semicolon)`, lineNumber);</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
   // REGEL 2: Prüfe auf ungültige Formate BEVOR wir tokenisieren
@@ -1270,7 +1270,7 @@ function parseTransitionLine(
   const tokens = line.split(/\s+/).filter(t =&gt; t.length &gt; 0);
   
   if (tokens.length === 0) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
-<span class="cstat-no" title="statement not covered" >    throw new DSLParseError(`Keine gültigen Tokens gefunden`, lineNumber);</span>
+<span class="cstat-no" title="statement not covered" >    throw new DSLParseError(`No valid tokens found`, lineNumber);</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
   let currentState: string | null = null;
@@ -1283,7 +1283,7 @@ function parseTransitionLine(
     // REGEL 3: Prüfe Symbol-Format
     if (token.match(/^-[^&gt;]+-?$/)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >      throw new DSLParseError(</span>
-<span class="cstat-no" title="statement not covered" >        `Ungültiges Symbol-Format: "${token}". Erwartet: -symbol&gt; (keine Leerzeichen)`,</span>
+<span class="cstat-no" title="statement not covered" >        `Invalid symbol format: "${token}". Expected: -symbol&gt; (no spaces)`,</span>
 <span class="cstat-no" title="statement not covered" >        lineNumber</span>
 <span class="cstat-no" title="statement not covered" >      );</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
@@ -1294,13 +1294,13 @@ function parseTransitionLine(
       
       // REGEL 4: Prüfe auf leeres Symbol
       if (symbol.length === 0) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
-<span class="cstat-no" title="statement not covered" >        throw new DSLParseError(`Leeres Symbol gefunden: "-&gt;"`, lineNumber);</span>
+<span class="cstat-no" title="statement not covered" >        throw new DSLParseError(`Empty symbol found: "-&gt;"`, lineNumber);</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
       
       // REGEL 5: Prüfe auf Leerzeichen im Symbol
       if (symbol.includes(' ')) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >        throw new DSLParseError(</span>
-<span class="cstat-no" title="statement not covered" >          `Symbol darf keine Leerzeichen enthalten: "${token}"`,</span>
+<span class="cstat-no" title="statement not covered" >          `Symbol must not contain spaces: "${token}"`,</span>
 <span class="cstat-no" title="statement not covered" >          lineNumber</span>
 <span class="cstat-no" title="statement not covered" >        );</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
@@ -1308,14 +1308,14 @@ function parseTransitionLine(
       // REGEL 6: Nur ε erlaubt, nicht "epsilon"
       if (symbol === 'epsilon') {
         throw new DSLParseError(
-          `Verwenden Sie 'ε' statt 'epsilon' für Epsilon-Übergänge`,
+          `Use 'ε' instead of 'epsilon' for epsilon transitions`,
           lineNumber
         );
       }
       
       if (!currentState) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >        throw new DSLParseError(</span>
-<span class="cstat-no" title="statement not covered" >          `Symbol '${symbol}' ohne Ausgangszustand gefunden`,</span>
+<span class="cstat-no" title="statement not covered" >          `Symbol '${symbol}' found without source state`,</span>
 <span class="cstat-no" title="statement not covered" >          lineNumber</span>
 <span class="cstat-no" title="statement not covered" >        );</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
@@ -1366,7 +1366,7 @@ function parseTransitionLine(
       if (effectiveIsStart) {
         if (nfa.startState &amp;&amp; nfa.startState !== stateName) {
           throw new DSLParseError(
-            `Mehrere Startzustände gefunden: "${nfa.startState}" und "${stateName}". Nur ein Startzustand ist erlaubt`,
+            `Multiple start states found: "${nfa.startState}" and "${stateName}". Only one start state is allowed`,
             lineNumber
           );
         }
@@ -1407,8 +1407,8 @@ function parseTransitionLine(
       } else if (currentState) {
         // REGEL: Zwei aufeinanderfolgende Zustände ohne Symbol dazwischen sind ungültig
         throw new DSLParseError(
-          `Zwei aufeinanderfolgende Zustände ohne Transition gefunden: "${currentState}" und "${stateName}". ` +
-          `Erwarte Symbol zwischen Zuständen (z.B. ${currentState} -a&gt; ${stateName})`,
+          `Two consecutive states without transition found: "${currentState}" and "${stateName}". ` +
+          `Expected symbol between states (e.g. ${currentState} -a&gt; ${stateName})`,
           lineNumber
         );
       }
@@ -1421,14 +1421,14 @@ function parseTransitionLine(
   // REGEL 9: Zeile muss mindestens eine Transition enthalten
   if (!hasAnyTransition) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >    throw new DSLParseError(</span>
-<span class="cstat-no" title="statement not covered" >      `Zeile enthält keine Transitionen. Erwartet: Zustand -symbol&gt; Zustand`,</span>
+<span class="cstat-no" title="statement not covered" >      `Line contains no transitions. Expected: state -symbol&gt; state`,</span>
 <span class="cstat-no" title="statement not covered" >      lineNumber</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
   if (pendingSymbols.length &gt; 0) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >    throw new DSLParseError(</span>
-<span class="cstat-no" title="statement not covered" >      `Symbole ${pendingSymbols.join(', ')} ohne Zielzustand`,</span>
+<span class="cstat-no" title="statement not covered" >      `Symbols ${pendingSymbols.join(', ')} without target state`,</span>
 <span class="cstat-no" title="statement not covered" >      lineNumber</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
@@ -1443,7 +1443,7 @@ function validateLineFormat(line: string, lineNumber: number): void {
   // -&gt; (leeres Symbol)
   if (line.includes('-&gt;')) {
     throw new DSLParseError(
-      `Ungültiges Format "-&gt;". Symbol darf nicht leer sein`,
+      `Invalid format "-&gt;". Symbol must not be empty`,
       lineNumber
     );
   }
@@ -1452,7 +1452,7 @@ function validateLineFormat(line: string, lineNumber: number): void {
   const invalidSymbolPattern = /-[^\s&gt;]+(?:\s|$)/;
   if (invalidSymbolPattern.test(line)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >    throw new DSLParseError(</span>
-<span class="cstat-no" title="statement not covered" >      `Ungültiges Symbol-Format gefunden. Erwartet: -symbol&gt; (mit &gt;)`,</span>
+<span class="cstat-no" title="statement not covered" >      `Invalid symbol format found. Expected: -symbol&gt; (with &gt;)`,</span>
 <span class="cstat-no" title="statement not covered" >      lineNumber</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
@@ -1461,7 +1461,7 @@ function validateLineFormat(line: string, lineNumber: number): void {
   const missingDashPattern = /(?:^|\s)[^-.\s(][^\s]*&gt;/;
   if (missingDashPattern.test(line)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >    throw new DSLParseError(</span>
-<span class="cstat-no" title="statement not covered" >      `Ungültiges Symbol-Format gefunden. Symbol muss mit - beginnen: -symbol&gt;`,</span>
+<span class="cstat-no" title="statement not covered" >      `Invalid symbol format found. Symbol must start with -: -symbol&gt;`,</span>
 <span class="cstat-no" title="statement not covered" >      lineNumber</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
@@ -1492,7 +1492,7 @@ function parseStateToken(token: string, lineNumber: number): {
     // Validiere Klammer-Format
     if (!stateName) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >      throw new DSLParseError(</span>
-<span class="cstat-no" title="statement not covered" >        `Leerer Zustandsname in Klammern: "${token}"`,</span>
+<span class="cstat-no" title="statement not covered" >        `Empty state name in parentheses: "${token}"`,</span>
 <span class="cstat-no" title="statement not covered" >        lineNumber</span>
 <span class="cstat-no" title="statement not covered" >      );</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
@@ -1504,7 +1504,7 @@ function parseStateToken(token: string, lineNumber: number): {
       
       if (!stateName) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >        throw new DSLParseError(</span>
-<span class="cstat-no" title="statement not covered" >          `Leerer Zustandsname nach Punkt in Klammern: "${token}"`,</span>
+<span class="cstat-no" title="statement not covered" >          `Empty state name after dot in parentheses: "${token}"`,</span>
 <span class="cstat-no" title="statement not covered" >          lineNumber</span>
 <span class="cstat-no" title="statement not covered" >        );</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
@@ -1518,7 +1518,7 @@ function parseStateToken(token: string, lineNumber: number): {
   // REGEL: Zustandsname darf keine Leerzeichen enthalten
   if (stateName.includes(' ')) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >    throw new DSLParseError(</span>
-<span class="cstat-no" title="statement not covered" >      `Zustandsname darf keine Leerzeichen enthalten: "${stateName}"`,</span>
+<span class="cstat-no" title="statement not covered" >      `State name must not contain spaces: "${stateName}"`,</span>
 <span class="cstat-no" title="statement not covered" >      lineNumber</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
@@ -1526,7 +1526,7 @@ function parseStateToken(token: string, lineNumber: number): {
   // REGEL: Zustandsname darf nicht leer sein
   if (stateName.length === 0) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >    throw new DSLParseError(</span>
-<span class="cstat-no" title="statement not covered" >      `Leerer Zustandsname gefunden: "${token}"`,</span>
+<span class="cstat-no" title="statement not covered" >      `Empty state name found: "${token}"`,</span>
 <span class="cstat-no" title="statement not covered" >      lineNumber</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
@@ -1534,7 +1534,7 @@ function parseStateToken(token: string, lineNumber: number): {
   // Prüfe auf ungültige Zeichen
   if (!stateName.match(/^[\w∅]+$/)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >    throw new DSLParseError(</span>
-<span class="cstat-no" title="statement not covered" >      `Ungültiger Zustandsname: "${stateName}". Erlaubt sind nur Buchstaben, Zahlen, Unterstriche und ∅`,</span>
+<span class="cstat-no" title="statement not covered" >      `Invalid state name: "${stateName}". Only letters, numbers, underscores and ∅ are allowed`,</span>
 <span class="cstat-no" title="statement not covered" >      lineNumber</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
@@ -1565,26 +1565,26 @@ function extractSymbolsFromRegex(regex: string): string[] {
 function finalizeNFA(nfa: NFA): void {
   // REGEL 1: Mindestens ein Zustand erforderlich
   if (nfa.states.length === 0) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
-<span class="cstat-no" title="statement not covered" >    throw new DSLParseError('Keine Zustände definiert');</span>
+<span class="cstat-no" title="statement not covered" >    throw new DSLParseError('No states defined');</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
   
   // REGEL 2: Genau EIN Startzustand erforderlich (nicht optional!)
   if (!nfa.startState) {
     throw new DSLParseError(
-      'Kein Startzustand definiert. Markieren Sie einen Zustand mit . (z.B. .q0)'
+      'No start state defined. Mark a state with . (e.g. .q0)'
     );
   }
   
   // REGEL 3: Mindestens ein akzeptierender Zustand erforderlich
   if (nfa.acceptStates.length === 0) {
     throw new DSLParseError(
-      'Keine akzeptierenden Zustände definiert. Setzen Sie mindestens einen Zustand in Klammern (z.B. (q2))'
+      'No accepting states defined. Put at least one state in parentheses (e.g. (q2))'
     );
   }
 &nbsp;
   // REGEL 4: Mindestens eine Transition erforderlich
   if (nfa.transitions.length === 0) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
-<span class="cstat-no" title="statement not covered" >    throw new DSLParseError('Keine Transitionen definiert');</span>
+<span class="cstat-no" title="statement not covered" >    throw new DSLParseError('No transitions defined');</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
   // REGEL 4a: Wenn Regex definiert ist, validiere Symbole gegen Regex
@@ -1595,9 +1595,9 @@ function finalizeNFA(nfa: NFA): void {
     for (const symbol of nfa.alphabet) {
       if (!regexSymbols.includes(symbol)) {
         throw new DSLParseError(
-          `Symbol "${symbol}" wird in Transitionen verwendet, kommt aber nicht in der Regex vor. ` +
+          `Symbol "${symbol}" is used in transitions but does not appear in the regex. ` +
           `Regex: "${nfa.regex}" ` +
-          `Erlaubte Symbole aus Regex: ${regexSymbols.length &gt; 0 ? regexSymbols.join(', '<span class="branch-0 cbranch-no" title="branch not covered" >) : '(keine)'}</span>`
+          `Allowed symbols from regex: ${regexSymbols.length &gt; 0 ? regexSymbols.join(', '<span class="branch-0 cbranch-no" title="branch not covered" >) : '(none)'}</span>`
         );
       }
     }
@@ -1606,7 +1606,7 @@ function finalizeNFA(nfa: NFA): void {
   // REGEL 5: Startzustand muss in der Zustandsliste sein
   if (!nfa.states.includes(nfa.startState)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >    throw new DSLParseError(</span>
-<span class="cstat-no" title="statement not covered" >      `Startzustand "${nfa.startState}" existiert nicht in der Zustandsliste`</span>
+<span class="cstat-no" title="statement not covered" >      `Start state "${nfa.startState}" does not exist in the state list`</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
@@ -1614,7 +1614,7 @@ function finalizeNFA(nfa: NFA): void {
   for (const acceptState of nfa.acceptStates) {
     if (!nfa.states.includes(acceptState)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >      throw new DSLParseError(</span>
-<span class="cstat-no" title="statement not covered" >        `Akzeptierender Zustand "${acceptState}" existiert nicht in der Zustandsliste`</span>
+<span class="cstat-no" title="statement not covered" >        `Accepting state "${acceptState}" does not exist in the state list`</span>
 <span class="cstat-no" title="statement not covered" >      );</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
   }
@@ -1623,12 +1623,12 @@ function finalizeNFA(nfa: NFA): void {
   for (const transition of nfa.transitions) {
     if (!nfa.states.includes(transition.from)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >      throw new DSLParseError(</span>
-<span class="cstat-no" title="statement not covered" >        `Transition verwendet unbekannten Zustand: "${transition.from}"`</span>
+<span class="cstat-no" title="statement not covered" >        `Transition uses unknown state: "${transition.from}"`</span>
 <span class="cstat-no" title="statement not covered" >      );</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
     if (!nfa.states.includes(transition.to)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >      throw new DSLParseError(</span>
-<span class="cstat-no" title="statement not covered" >        `Transition verwendet unbekannten Zustand: "${transition.to}"`</span>
+<span class="cstat-no" title="statement not covered" >        `Transition uses unknown state: "${transition.to}"`</span>
 <span class="cstat-no" title="statement not covered" >      );</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
   }
@@ -1637,8 +1637,8 @@ function finalizeNFA(nfa: NFA): void {
   for (const transition of nfa.transitions) {
     if (transition.symbol !== 'ε' &amp;&amp; !nfa.alphabet.includes(transition.symbol)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >      throw new DSLParseError(</span>
-<span class="cstat-no" title="statement not covered" >        `Transition verwendet Symbol "${transition.symbol}", das nicht im Alphabet definiert ist. ` +</span>
-<span class="cstat-no" title="statement not covered" >        `Verfügbare Symbole: ${nfa.alphabet.length &gt; 0 ? nfa.alphabet.join(', ') : '(leer)'}`</span>
+<span class="cstat-no" title="statement not covered" >        `Transition uses symbol "${transition.symbol}" which is not defined in the alphabet. ` +</span>
+<span class="cstat-no" title="statement not covered" >        `Available symbols: ${nfa.alphabet.length &gt; 0 ? nfa.alphabet.join(', ') : '(empty)'}`</span>
 <span class="cstat-no" title="statement not covered" >      );</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
   }
@@ -1654,7 +1654,7 @@ function finalizeNFA(nfa: NFA): void {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-02-26T19:18:16.377Z
+                at 2026-03-10T12:14:16.487Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

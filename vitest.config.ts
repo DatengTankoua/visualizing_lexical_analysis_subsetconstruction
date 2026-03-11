@@ -21,7 +21,7 @@ export default mergeConfig(
       hookTimeout: 15000,
       
       coverage: {
-        reporter: ['text', 'json', 'html'],
+        reporter: ['text', 'json', 'html', 'cobertura'],
         exclude: [
           'node_modules/',
           'tests/',
