@@ -269,4 +269,69 @@ DFA-Export als .aef
 
 ---
 
+## 8. Erweiterungsoptionen
+
+### 8.1 Weitere Export-/Import-Formate (z. B. PDF, SVG, JSON)
+
+Aktuell unterstützt die Anwendung ausschließlich das AEF-Textformat für den Export (`exportDfaToAef`) und Import (`parseDSL`). Das Design ist bewusst modular gehalten, sodass weitere Formate ohne Änderungen an bestehenden Modulen ergänzt werden können.
+
+**Ansatzpunkt:** `src/core/export/`
+
+Für ein neues Format (Beispiel: PDF-Export des DFA-Graphen) genügt eine neue Funktion mit identischer Signatur:
+
+```typescript
+// src/core/export/exportDfaToPdf.ts
+import type { DFA } from "../models/types";
+
+export async function exportDfaToPdf(dfa: DFA): Promise<void> {
+  // z. B. html2canvas + jsPDF oder @react-pdf/renderer
+}
+```
+
+In `Home.tsx` wird der Button dann einfach um einen weiteren Handler erweitert:
+
+```typescript
+const handleExportPdf = async () => {
+  if (!dfa) return;
+  await exportDfaToPdf(dfa);
+};
+```
+
+Analog lässt sich ein JSON-Import als zusätzliche Funktion in `src/core/parser/` ablegen, die ebenfalls `ParseResult` zurückgibt und damit direkt mit dem vorhandenen Zustandsmanagement in `Home.tsx` kompatibel ist.
+
+---
+
+### 8.2 Weitere Übersetzungssprachen
+
+Die Internationaliserung basiert auf **Tolgee** (`src/lib/tolgeeInstance.ts`). Aktuell sind Deutsch (`de`) und Englisch (`en`) als statische Schlüssel-Wert-Objekte im `staticData`-Block hinterlegt.
+
+**Ansatzpunkt:** `src/lib/tolgeeInstance.ts`
+
+Eine neue Sprache (Beispiel: Französisch `fr`) wird in drei Schritten ergänzt:
+
+1. Den neuen Sprachblock in `staticData` eintragen – alle bereits vorhandenen Schlüssel übersetzen:
+
+```typescript
+staticData: {
+  de: { /* ... */ },
+  en: { /* ... */ },
+  fr: {
+    home: { title: "Visualiseur NFA → DFA" },
+    controls: {
+      title: "Construction par sous-ensembles",
+      // ... alle weiteren Keys
+    },
+    // ...
+  },
+}
+```
+
+2. Den `LanguageToggle` (`src/components/Controls/LanguageToggle.tsx`) um die neue Sprache erweitern, sodass sie auswählbar wird.
+
+3. Optional: `fallbackLanguage` auf `"en"` belassen – bei fehlenden Schlüsseln in `fr` wird automatisch auf Englisch zurückgefallen.
+
+Über die Tolgee-Cloud-API können Übersetzungen alternativ auch zur Laufzeit geladen werden, ohne einen neuen Build erstellen zu müssen (`apiUrl` / `apiKey` in `.env`).
+
+---
+
 **Kontakt:** Datengta@students.uni-marburg.de  Zhangzi@students.uni-marburg.de
