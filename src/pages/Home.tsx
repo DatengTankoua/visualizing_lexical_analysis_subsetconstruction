@@ -68,190 +68,208 @@ export default function Home() {
 
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">{t("home.title")}</h1>
+    <div className="min-h-screen lg:h-screen flex flex-col">
+
+      {/* ── Compact Header ── */}
+      <header className="flex items-center justify-between px-4 py-2 border-b bg-white shadow-sm shrink-0">
+        <h1 className="text-base sm:text-lg font-bold tracking-tight leading-tight">{t("home.title")}</h1>
         <div className="flex items-center gap-2">
           <HighContrastToggle />
           <LanguageToggle />
         </div>
-      </div>
-      
-      <div className="space-y-6">
-        <DSLInput onLoad={handleLoad} onParseResult={handleParseResult} />
-        
-        {/* Fehleranzeige */}
-        {parseResult && !parseResult.success && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded">
-            <h3 className="font-semibold text-red-800 mb-2">{t("errors.parsing.title")}</h3>
-            <p className="text-red-700">{parseResult.error}</p>
-            {parseResult.line && (
-              <p className="text-red-600 text-sm mt-1">{t("errors.parsing.line")} {parseResult.line}</p>
-            )}
-          </div>
-        )}
-        
-        {/* Erfolgreiche Anzeige */}
-        {parseResult && parseResult.success && nfa && (
-          <div className="p-4 bg-green-50 border border-green-200 rounded">
-            <h3 className="font-semibold text-green-800 mb-2">
-              {t("nfa.summary.title")}
-              {nfa.name && <span className="font-normal"> · {nfa.name}</span>}
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-              <div>
-                <span className="font-medium">{t("labels.states")}:</span> {nfa.states.length}
-                <div className="text-gray-600">[{nfa.states.join(', ')}]</div>
-              </div>
-              <div>
-                <span className="font-medium">{t("labels.alphabet")}:</span> {nfa.alphabet.length}
-                <div className="text-gray-600">
-                  [{nfa.alphabet.join(', ')}]
-                  {nfa.hasEpsilon && <span className="ml-1 text-purple-600">(+ε)</span>}
-                </div>
-              </div>
-              <div>
-                <span className="font-medium">{t("labels.start")}:</span> {nfa.startState}
-              </div>
-              <div>
-                <span className="font-medium">{t("labels.accepting")}:</span> {nfa.acceptStates.length}
-                <div className="text-gray-600">[{nfa.acceptStates.join(', ')}]</div>
-              </div>
-            </div>
-            <div className="mt-3">
-              <span className="font-medium">{t("labels.transitions")}:</span> {nfa.transitions.length}
-              {nfa.hasEpsilon && (
-                <span className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">
-                  {t("labels.withEpsilon")}
-                </span>
-              )}
-              {nfa.regex && (
-                <div className="text-gray-600 mt-1">
-                  <span className="font-medium">{t("nfa.regex")}:</span> {nfa.regex}
-                </div>
+      </header>
+
+      {/* ── Body: sidebar + main ── */}
+      <div className="flex flex-col lg:flex-row flex-1 lg:overflow-hidden">
+
+        {/* ── Left Sidebar ── */}
+        <aside className="w-150 shrink-0 flex flex-col gap-3 border-b lg:border-b-0 lg:border-r bg-gray-50 lg:overflow-y-auto p-3">
+
+          <DSLInput onLoad={handleLoad} onParseResult={handleParseResult} />
+
+          {/* Parse error */}
+          {parseResult && !parseResult.success && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded text-sm">
+              <p className="font-semibold text-red-800 mb-1">{t("errors.parsing.title")}</p>
+              <p className="text-red-700">{parseResult.error}</p>
+              {parseResult.line && (
+                <p className="text-red-600 text-xs mt-1">{t("errors.parsing.line")} {parseResult.line}</p>
               )}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* DFA Info */}
-        {dfa && (
-          <div className="p-4 bg-purple-50 border border-purple-200 rounded">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-semibold text-purple-800">
-                {t("dfa.summary.title")}
-                {dfa.name && <span className="font-normal"> · {dfa.name}</span>}
-              </h3>
-              
-              <button
-               onClick={handleExport}
-               disabled={!canExport}
-               title={
-                canExport
-                ? "Export DFA as AEF"
-                : "Export nicht möglich: @NAME oder @REGEX fehlt  /  Export not possible: @NAME or @REGEX missing"
-              }
-              className={`px-3 py-1 text-sm rounded border transition-colors ${
-                canExport
-                  ? "border-purple-300 text-purple-700 hover:bg-purple-500 hover:text-white"
-                  : "border-gray-200 text-gray-400 cursor-not-allowed"}
-              }`}
-              >
-                Export AEF
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-              <div>
-                <span className="font-medium">{t("labels.states")}:</span> {dfa.states.length}
-                <div className="text-gray-600">[{dfa.states.join(', ')}]</div>
+          {/* NFA Summary */}
+          {parseResult?.success && nfa && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded text-xs">
+              <p className="font-semibold text-green-800 mb-2 text-sm">
+                {t("nfa.summary.title")}
+                {nfa.name && <span className="font-normal"> · {nfa.name}</span>}
+              </p>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                <div>
+                  <span className="font-medium">{t("labels.states")}:</span> {nfa.states.length}
+                  <div className="text-gray-500">[{nfa.states.join(', ')}]</div>
+                </div>
+                <div>
+                  <span className="font-medium">{t("labels.alphabet")}:</span>
+                  <div className="text-gray-500">
+                    [{nfa.alphabet.join(', ')}]
+                    {nfa.hasEpsilon && <span className="ml-1 text-purple-600">(+ε)</span>}
+                  </div>
+                </div>
+                <div>
+                  <span className="font-medium">{t("labels.start")}:</span> {nfa.startState}
+                </div>
+                <div>
+                  <span className="font-medium">{t("labels.accepting")}:</span>{' '}
+                  {nfa.acceptStates.join(', ')}
+                </div>
               </div>
-              <div>
-                <span className="font-medium">{t("labels.alphabet")}:</span> {dfa.alphabet.length}
-                <div className="text-gray-600">[{dfa.alphabet.join(', ')}]</div>
-              </div>
-              <div>
-                <span className="font-medium">{t("labels.start")}:</span> {dfa.startState}
-              </div>
-              <div>
-                <span className="font-medium">{t("labels.accepting")}:</span> {dfa.acceptStates.length}
-                <div className="text-gray-600">[{dfa.acceptStates.join(', ')}]</div>
-              </div>
-            </div>
-            <div className="mt-3">
-              <span className="font-medium">{t("labels.transitions")}:</span> {dfa.transitions.length}
-            </div>
-            {nfa && dfa && (
-              <div className="mt-2 text-sm text-purple-700">
-                <span className="font-medium">{t("dfa.stateComparison")}:</span>{" "}
-                {nfa.states.length} → {dfa.states.length}
-                <span className="ml-2 text-purple-600">
-                  (×{(dfa.states.length / Math.max(1, nfa.states.length)).toFixed(2)})
+              <div className="mt-2">
+                <span className="font-medium">{t("labels.transitions")}:</span> {nfa.transitions.length}
+                {nfa.hasEpsilon && (
+                  <span className="ml-2 px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">
+                    {t("labels.withEpsilon")}
                   </span>
+                )}
+                {nfa.regex && (
+                  <div className="text-gray-500 mt-1">
+                    <span className="font-medium">{t("nfa.regex")}:</span> {nfa.regex}
                   </div>
                 )}
+              </div>
             </div>
-        )}
+          )}
 
-        {/* Step Controls */}
-        {nfa && steps.length > 0 && (
-          <section>
-            <StepControls steps={steps} onStepChange={handleStepChange} />
-          </section>
-        )}
-
-        {/* Subset Construction Table */}
-        {nfa && currentStep && (
-          <section>
-            <SubsetTable 
-              step={currentStep} 
-              alphabet={nfa.alphabet.filter(s => s !== 'ε')} 
-            />
-          </section>
-        )}
-        
-        <section className="mt-4">
-          <h2 className="mb-2 font-medium">{t("section.subset")}</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* NFA Graph */}
-            <div>
-              <h3 className="text-sm font-medium mb-2 text-gray-700 bg-green-100 px-3 py-1 rounded">
-                {t("graph.nfa.title")}
-              </h3>
-              {nfa ? (
-                <GraphViewer nfa={nfa} />
-              ) : (
-                <div className="border h-[480px] rounded-xl grid place-items-center text-gray-500">
-                  {t("graph.nfa.empty")}
+          {/* DFA Summary */}
+          {dfa && (
+            <div className="p-3 bg-purple-50 border border-purple-200 rounded text-xs">
+              <div className="flex justify-between items-center mb-2">
+                <p className="font-semibold text-purple-800 text-sm">
+                  {t("dfa.summary.title")}
+                  {dfa.name && <span className="font-normal"> · {dfa.name}</span>}
+                </p>
+                <button
+                  onClick={handleExport}
+                  disabled={!canExport}
+                  title={
+                    canExport
+                      ? "Export DFA as AEF"
+                      : "Export nicht möglich: @NAME oder @REGEX fehlt"
+                  }
+                  className={`px-2 py-0.5 text-xs rounded border transition-colors ${
+                    canExport
+                      ? "border-purple-300 text-purple-700 hover:bg-purple-500 hover:text-white"
+                      : "border-gray-200 text-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                  Export AEF
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                <div>
+                  <span className="font-medium">{t("labels.states")}:</span> {dfa.states.length}
+                  <div className="text-gray-500">[{dfa.states.join(', ')}]</div>
+                </div>
+                <div>
+                  <span className="font-medium">{t("labels.alphabet")}:</span>
+                  <div className="text-gray-500">[{dfa.alphabet.join(', ')}]</div>
+                </div>
+                <div>
+                  <span className="font-medium">{t("labels.start")}:</span> {dfa.startState}
+                </div>
+                <div>
+                  <span className="font-medium">{t("labels.accepting")}:</span>{' '}
+                  {dfa.acceptStates.join(', ')}
+                </div>
+              </div>
+              <div className="mt-2">
+                <span className="font-medium">{t("labels.transitions")}:</span> {dfa.transitions.length}
+              </div>
+              {nfa && dfa && (
+                <div className="mt-1 text-purple-700">
+                  <span className="font-medium">{t("dfa.stateComparison")}:</span>{' '}
+                  {nfa.states.length} → {dfa.states.length}{' '}
+                  <span className="text-purple-500">
+                    (×{(dfa.states.length / Math.max(1, nfa.states.length)).toFixed(2)})
+                  </span>
                 </div>
               )}
             </div>
+          )}
+        </aside>
 
-            {/* DFA Graph - Shows current step */}
+        {/* ── Main Content ── */}
+        <main className="flex-1 flex flex-col p-3 gap-3 lg:overflow-y-auto">
+
+          {/* Step Controls (full width) */}
+          {nfa && steps.length > 0 && (
             <div>
-              <h3 className="text-sm font-medium mb-2 text-gray-700 bg-purple-100 px-3 py-1 rounded">
-                {t("graph.dfa.step")} {currentStepIndex + 1}
-                {steps.length > 0 && ` / ${steps.length}`}
-              </h3>
-              {dfa && currentStep ? (
-                <GraphViewer
-                  nfa={{
-                    ...dfa,
-                    states: currentStep.dfaStates.map(s => s.length === 1 ? s[0] : `{${s.join(',')}}`),
-                    transitions: currentStep.dfaTransitions,
-                    startState: dfa.startState,
-                    acceptStates: dfa.acceptStates,
-                    alphabet: dfa.alphabet,
-                  }}
+              <StepControls steps={steps} onStepChange={handleStepChange} onExport={handleExport} canExport={canExport} />
+            </div>
+          )}
+
+          {/* Table + Graphs */}
+          <div className="flex flex-col xl:flex-row gap-3">
+
+            {/* Subset Construction Table */}
+            {nfa && currentStep && (
+              <div className="w-150 shrink-0 overflow-auto">
+                <SubsetTable
+                  step={currentStep}
+                  alphabet={nfa.alphabet.filter(s => s !== 'ε')}
                 />
-              ) : (
-                <div className="border h-[480px] rounded-xl grid place-items-center text-gray-500">
-                  {t("graph.dfa.empty")}
+              </div>
+            )}
+
+            {/* NFA + DFA Graphs side by side */}
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 min-w-0">
+              {/* NFA Graph */}
+              <div className="w-full flex flex-col min-h-0i">
+                <h3 className="text-xs font-semibold mb-1 px-2 py-0.5 bg-green-100 text-green-800 rounded">
+                  {t("graph.nfa.title")}
+                </h3>
+                <div className="border rounded-lg overflow-hidden">
+                  {nfa ? (
+                    <GraphViewer nfa={nfa} />
+                  ) : (
+                    <div className="h-48 grid place-items-center text-gray-400 text-sm">
+                      {t("graph.nfa.empty")}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+
+              {/* DFA Graph */}
+              <div className="w-full flex flex-col min-h-0i">
+                <h3 className="text-xs font-semibold mb-1 px-2 py-0.5 bg-purple-100 text-purple-800 rounded">
+                  {t("graph.dfa.step")} {currentStepIndex + 1}
+                  {steps.length > 0 && ` / ${steps.length}`}
+                </h3>
+                <div className="border rounded-lg overflow-hidden">
+                  {dfa && currentStep ? (
+                    <GraphViewer
+                      nfa={{
+                        ...dfa,
+                        states: currentStep.dfaStates.map(s =>
+                          s.length === 1 ? s[0] : `${s.join('_')}`
+                        ),
+                        transitions: currentStep.dfaTransitions,
+                        startState: dfa.startState,
+                        acceptStates: dfa.acceptStates,
+                        alphabet: dfa.alphabet,
+                      }}
+                    />
+                  ) : (
+                    <div className="h-48 grid place-items-center text-gray-400 text-sm">
+                      {t("graph.dfa.empty")}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </section>
+        </main>
       </div>
     </div>
   );

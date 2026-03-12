@@ -107,7 +107,7 @@ export default function DSLInput({ onLoad, onParseResult }: Props) {
         />
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="bg-purple-50 border border-purple-200 px-3 py-2 rounded">
           <label className="block text-xs font-medium text-purple-900 mb-1">
             📁 {t("input.example.label")}

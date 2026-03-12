@@ -6,9 +6,11 @@ import { useTranslate } from "@tolgee/react";
 interface StepControlsProps {
   steps: SubsetConstructionStep[];
   onStepChange?: (step: SubsetConstructionStep, index: number) => void;
+  onExport?: () => void;
+  canExport?: boolean;
 }
 
-export default function StepControls({ steps, onStepChange }: StepControlsProps) {
+export default function StepControls({ steps, onStepChange, onExport, canExport = false }: StepControlsProps) {
   const { t } = useTranslate();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -51,8 +53,8 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">{t("controls.title")}</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-lg sm:text-xl font-semibold">{t("controls.title")}</h2>
         <span className="text-sm text-gray-600">
           {t("controls.stepCounter")} {currentStepIndex + 1} / {steps.length}
         </span>
@@ -126,22 +128,22 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-3 gap-3 text-sm">
-        <div className="p-3 bg-white border rounded">
-          <div className="font-medium text-gray-700 mb-1">{t("controls.stats.dfaStates")}</div>
-          <div className="text-2xl font-bold text-blue-600">
+      <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 text-sm">
+        <div className="p-2 sm:p-3 bg-white border rounded">
+          <div className="font-medium text-gray-700 mb-1 text-xs sm:text-sm">{t("controls.stats.dfaStates")}</div>
+          <div className="text-xl sm:text-2xl font-bold text-blue-600">
             {currentStep.dfaStates.length}
           </div>
         </div>
-        <div className="p-3 bg-white border rounded">
-          <div className="font-medium text-gray-700 mb-1">{t("controls.stats.transitions")}</div>
-          <div className="text-2xl font-bold text-green-600">
+        <div className="p-2 sm:p-3 bg-white border rounded">
+          <div className="font-medium text-gray-700 mb-1 text-xs sm:text-sm">{t("controls.stats.transitions")}</div>
+          <div className="text-xl sm:text-2xl font-bold text-green-600">
             {currentStep.dfaTransitions.length}
           </div>
         </div>
-        <div className="p-3 bg-white border rounded">
-          <div className="font-medium text-gray-700 mb-1">{t("controls.stats.unmarked")}</div>
-          <div className="text-2xl font-bold text-purple-600">
+        <div className="p-2 sm:p-3 bg-white border rounded">
+          <div className="font-medium text-gray-700 mb-1 text-xs sm:text-sm">{t("controls.stats.unmarked")}</div>
+          <div className="text-xl sm:text-2xl font-bold text-purple-600">
             {currentStep.unmarkedStates.length}
           </div>
         </div>
@@ -150,9 +152,29 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
       {/* Completion Status */}
       {currentStep.isComplete && (
         <div className="p-4 bg-green-50 border border-green-200 rounded">
-          <h4 className="font-semibold text-green-800 flex items-center gap-2">
-            ✓ {t("controls.complete.title")}
-          </h4>
+          <div className="flex items-center justify-between">
+            <h4 className="font-semibold text-green-800 flex items-center gap-2">
+              ✓ {t("controls.complete.title")}
+            </h4>
+            {onExport && (
+              <button
+                onClick={onExport}
+                disabled={!canExport}
+                title={
+                  canExport
+                    ? "Export DFA as AEF"
+                    : "Export nicht möglich: @NAME oder @REGEX fehlt"
+                }
+                className={`px-3 py-1 text-sm rounded border transition-colors ${
+                  canExport
+                    ? "border-green-400 text-green-700 hover:bg-green-600 hover:text-white"
+                    : "border-gray-200 text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                Export AEF
+              </button>
+            )}
+          </div>
           <p className="text-sm text-green-700 mt-1">
             {t("controls.complete.text")} {currentStep.dfaStates.length} {t("controls.complete.statesAnd")} {currentStep.dfaTransitions.length} {t("controls.complete.transitionsSuffix")}
           </p>
@@ -160,12 +182,12 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
       )}
 
       {/* Controls */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => { setCurrentStepIndex(0); setIsPlaying(false); }}
             disabled={currentStepIndex === 0}
-            className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm"
             title={t("controls.buttons.toStart")}
           >
             ⏮️ {t("controls.buttons.start")}
@@ -174,7 +196,7 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
           <button
             onClick={() => setCurrentStepIndex(prev => Math.max(0, prev - 1))}
             disabled={currentStepIndex === 0}
-            className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="px-2 sm:px-3 py-1.5 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm"
           >
             ⬅️ {t("controls.buttons.back")}
           </button>
@@ -184,7 +206,7 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
               if (currentStepIndex >= steps.length - 1) setCurrentStepIndex(0);
               setIsPlaying(!isPlaying);
             }}
-            className={`px-4 py-2 rounded font-medium ${
+            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded font-medium text-sm ${
               isPlaying ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
             } text-white`}
           >
@@ -194,7 +216,7 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
           <button
             onClick={() => setCurrentStepIndex(prev => Math.min(steps.length - 1, prev + 1))}
             disabled={currentStepIndex >= steps.length - 1}
-            className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="px-2 sm:px-3 py-1.5 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm"
           >
             {t("controls.buttons.next")} ➡️
           </button>
@@ -202,14 +224,14 @@ export default function StepControls({ steps, onStepChange }: StepControlsProps)
           <button
             onClick={() => { setCurrentStepIndex(steps.length - 1); setIsPlaying(false); }}
             disabled={currentStepIndex >= steps.length - 1}
-            className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm"
             title={t("controls.buttons.toEnd")}
           >
             {t("controls.buttons.end")} ⏭️
           </button>
         </div>
 
-        <div className="flex items-center gap-2 ml-auto">
+        <div className="flex items-center gap-2 sm:ml-auto">
           <label className="text-sm text-gray-700">{t("controls.speed.label")}</label>
           <select
             value={speed}
