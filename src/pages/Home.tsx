@@ -209,63 +209,71 @@ export default function Home() {
             </div>
           )}
 
-          {/* Table + Graphs */}
-          <div className="flex flex-col xl:flex-row gap-3">
+          {/* NFA Graph | Transition Table | DFA Graph */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
 
-            {/* Subset Construction Table */}
-            {nfa && currentStep && (
-              <div className="w-150 shrink-0 overflow-auto">
-                <SubsetTable
-                  step={currentStep}
-                  alphabet={nfa.alphabet.filter(s => s !== 'ε')}
-                />
+            {/* NFA Graph */}
+            <div className="flex flex-col min-h-0">
+              <h3 className="text-xs font-semibold mb-1 px-2 py-0.5 bg-green-100 text-green-800 rounded shrink-0">
+                {t("graph.nfa.title")}
+              </h3>
+              <div className="border rounded-lg overflow-hidden">
+                {nfa ? (
+                  <GraphViewer nfa={nfa} />
+                ) : (
+                  <div className="h-48 grid place-items-center text-gray-400 text-sm">
+                    {t("graph.nfa.empty")}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
-            {/* NFA + DFA Graphs side by side */}
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 min-w-0">
-              {/* NFA Graph */}
-              <div className="w-full flex flex-col min-h-0i">
-                <h3 className="text-xs font-semibold mb-1 px-2 py-0.5 bg-green-100 text-green-800 rounded">
-                  {t("graph.nfa.title")}
-                </h3>
-                <div className="border rounded-lg overflow-hidden">
-                  {nfa ? (
-                    <GraphViewer nfa={nfa} />
-                  ) : (
-                    <div className="h-48 grid place-items-center text-gray-400 text-sm">
-                      {t("graph.nfa.empty")}
-                    </div>
-                  )}
+            {/* Transition Table */}
+            <div className="flex flex-col min-h-0">
+              {nfa && currentStep ? (
+                <div className="overflow-auto h-full">
+                  <SubsetTable
+                    step={currentStep}
+                    alphabet={nfa.alphabet.filter(s => s !== 'ε')}
+                  />
                 </div>
-              </div>
+              ) : (
+                <div className="flex flex-col h-full">
+                  <h3 className="text-xs font-semibold mb-1 px-2 py-0.5 bg-gray-100 text-gray-600 rounded shrink-0">
+                    {t("table.title")}
+                  </h3>
+                  <div className="flex-1 border rounded-lg grid place-items-center text-gray-400 text-sm h-48">
+                    —
+                  </div>
+                </div>
+              )}
+            </div>
 
-              {/* DFA Graph */}
-              <div className="w-full flex flex-col min-h-0i">
-                <h3 className="text-xs font-semibold mb-1 px-2 py-0.5 bg-purple-100 text-purple-800 rounded">
-                  {t("graph.dfa.step")} {currentStepIndex + 1}
-                  {steps.length > 0 && ` / ${steps.length}`}
-                </h3>
-                <div className="border rounded-lg overflow-hidden">
-                  {dfa && currentStep ? (
-                    <GraphViewer
-                      nfa={{
-                        ...dfa,
-                        states: currentStep.dfaStates.map(s =>
-                          s.length === 1 ? s[0] : `${s.join('_')}`
-                        ),
-                        transitions: currentStep.dfaTransitions,
-                        startState: dfa.startState,
-                        acceptStates: dfa.acceptStates,
-                        alphabet: dfa.alphabet,
-                      }}
-                    />
-                  ) : (
-                    <div className="h-48 grid place-items-center text-gray-400 text-sm">
-                      {t("graph.dfa.empty")}
-                    </div>
-                  )}
-                </div>
+            {/* DFA Graph */}
+            <div className="flex flex-col min-h-0">
+              <h3 className="text-xs font-semibold mb-1 px-2 py-0.5 bg-purple-100 text-purple-800 rounded shrink-0">
+                {t("graph.dfa.step")} {currentStepIndex + 1}
+                {steps.length > 0 && ` / ${steps.length}`}
+              </h3>
+              <div className="border rounded-lg overflow-hidden">
+                {dfa && currentStep ? (
+                  <GraphViewer
+                    nfa={{
+                      ...dfa,
+                      states: currentStep.dfaStates.map(s =>
+                        s.length === 1 ? s[0] : `${s.join('_')}`
+                      ),
+                      transitions: currentStep.dfaTransitions,
+                      startState: dfa.startState,
+                      acceptStates: dfa.acceptStates,
+                      alphabet: dfa.alphabet,
+                    }}
+                  />
+                ) : (
+                  <div className="h-48 grid place-items-center text-gray-400 text-sm">
+                    {t("graph.dfa.empty")}
+                  </div>
+                )}
               </div>
             </div>
           </div>
