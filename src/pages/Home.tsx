@@ -18,6 +18,7 @@ export default function Home() {
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
   const [currentStep, setCurrentStep] = useState<SubsetConstructionStep | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [showNfa, setShowNfa] = useState(true);
 
   // Convert NFA to DFA with steps when NFA changes
   const conversionResult = useMemo(() => {
@@ -83,7 +84,7 @@ export default function Home() {
       <div className="flex flex-col lg:flex-row flex-1 lg:overflow-hidden">
 
         {/* ── Left Sidebar ── */}
-        <aside className="w-150 shrink-0 flex flex-col gap-3 border-b lg:border-b-0 lg:border-r bg-gray-50 lg:overflow-y-auto p-3">
+        <aside className="w-full lg:w-80 shrink-0 flex flex-col gap-3 border-b lg:border-b-0 lg:border-r bg-gray-50 lg:overflow-y-auto p-3">
 
           <DSLInput onLoad={handleLoad} onParseResult={handleParseResult} />
 
@@ -209,42 +210,58 @@ export default function Home() {
             </div>
           )}
 
-          {/* NFA Graph | Transition Table | DFA Graph */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {/* NFA Graph / Tabelle  |  DFA Graph */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 
-            {/* NFA Graph */}
+            {/* Linke Spalte: Toggle NFA Graph ↔ Transition Table */}
             <div className="flex flex-col min-h-0">
-              <h3 className="text-xs font-semibold mb-1 px-2 py-0.5 bg-green-100 text-green-800 rounded shrink-0">
-                {t("graph.nfa.title")}
-              </h3>
-              <div className="border rounded-lg overflow-hidden">
-                {nfa ? (
-                  <GraphViewer nfa={nfa} />
-                ) : (
-                  <div className="h-48 grid place-items-center text-gray-400 text-sm">
-                    {t("graph.nfa.empty")}
-                  </div>
-                )}
+              {/* Toggle-Header */}
+              <div className="flex items-center mb-1 rounded overflow-hidden border border-gray-200 text-xs font-semibold shrink-0">
+                <button
+                  onClick={() => setShowNfa(true)}
+                  className={`flex-1 px-3 py-1 transition-colors ${
+                    showNfa
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-white text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  {t("graph.nfa.title")}
+                </button>
+                <button
+                  onClick={() => setShowNfa(false)}
+                  className={`flex-1 px-3 py-1 transition-colors ${
+                    !showNfa
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-white text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  {t("table.title")}
+                </button>
               </div>
-            </div>
 
-            {/* Transition Table */}
-            <div className="flex flex-col min-h-0">
-              {nfa && currentStep ? (
-                <div className="overflow-auto h-full">
-                  <SubsetTable
-                    step={currentStep}
-                    alphabet={nfa.alphabet.filter(s => s !== 'ε')}
-                  />
+              {/* Inhalt */}
+              {showNfa ? (
+                <div className="border rounded-lg overflow-hidden">
+                  {nfa ? (
+                    <GraphViewer nfa={nfa} />
+                  ) : (
+                    <div className="h-48 grid place-items-center text-gray-400 text-sm">
+                      {t("graph.nfa.empty")}
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div className="flex flex-col h-full">
-                  <h3 className="text-xs font-semibold mb-1 px-2 py-0.5 bg-gray-100 text-gray-600 rounded shrink-0">
-                    {t("table.title")}
-                  </h3>
-                  <div className="flex-1 border rounded-lg grid place-items-center text-gray-400 text-sm h-48">
-                    —
-                  </div>
+                <div className="overflow-auto">
+                  {nfa && currentStep ? (
+                    <SubsetTable
+                      step={currentStep}
+                      alphabet={nfa.alphabet.filter(s => s !== 'ε')}
+                    />
+                  ) : (
+                    <div className="border rounded-lg h-48 grid place-items-center text-gray-400 text-sm">
+                      —
+                    </div>
+                  )}
                 </div>
               )}
             </div>
