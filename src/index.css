@@ -87,9 +87,8 @@ html.high-contrast #root {
 }
 
 /* Force text colors */
-html.high-contrast * {
-  color: #fff ;
-  border-color: #fff !important;
+html.high-contrast [class*="nodrag"] {
+  color: #000 !important;
 }
 
 html.high-contrast [class*="text-gray"],
