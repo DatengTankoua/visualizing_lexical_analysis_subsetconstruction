@@ -163,6 +163,16 @@ npm run test:coverage  # Coverage-Report
 
 ---
 
+## 9. Erweiterung: DFA-Wortsimulation
+
+Diese zusätzliche Funktion ermöglicht es, ein Eingabewort auf dem generierten DFA Schritt für Schritt zu simulieren.
+
+- der aktuelle Zustand im Graph hervorgehoben
+- der Fortschritt im Wort visualisiert
+- angezeigt, ob das Wort akzeptiert wird
+
+---
+
 ## 9. Projektstatus
 
 **Abgeschlossen:** AEF-Parser, NFA-/DFA-Visualisierung, Datei-Upload, Subset Construction (FIFO), Step-Navigation, DFA-Export, Mehrsprachigkeit (DE/EN), High-Contrast-Modus (Barrierearmut), 124 Tests (100% passing)
