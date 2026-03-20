@@ -118,6 +118,12 @@ interface GraphViewerProps {
 }
 ```
 
+### simulateDfaRun.ts
+
+```typescript
+function simulateDfaRun(dfa: DFA, word: string)
+```
+
 ---
 
 ## 4. TypeScript-Typen (`src/core/models/types.ts`)
