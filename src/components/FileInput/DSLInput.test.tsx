@@ -269,7 +269,7 @@ q1 -b> (q2);`;
         expect(textarea).toHaveValue('.q0 -a> (q1);');
       });
       
-      expect(global.fetch).toHaveBeenCalledWith(`${import.meta.env.BASE_URL}examples/example_nfa.aef`);
+      expect(global.fetch).toHaveBeenCalledWith('/examples/example_nfa.aef');
     });
 
     it('should disable select while loading', async () => {
