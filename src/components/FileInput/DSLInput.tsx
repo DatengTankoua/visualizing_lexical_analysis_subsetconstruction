@@ -77,7 +77,7 @@ export default function DSLInput({ onLoad, onParseResult }: Props) {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`/examples/${value}.aef`);
+      const response = await fetch(`${import.meta.env.BASE_URL}examples/${value}.aef`);
       if (!response.ok) {
         throw new Error(`Failed to load example: ${response.statusText}`);
       }
