@@ -56,3 +56,143 @@
     color: hsl(var(--foreground));
   }
 }
+
+/* ── High-Contrast Mode ─────────────────────────────────────────── */
+html.high-contrast {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 0%;
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 0%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 60 100% 50%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 0% 12%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 12%;
+  --muted-foreground: 0 0% 95%;
+  --accent: 60 100% 50%;
+  --accent-foreground: 0 0% 0%;
+  --destructive: 0 100% 60%;
+  --destructive-foreground: 0 0% 0%;
+  --border: 0 0% 100%;
+  --input: 0 0% 15%;
+  --ring: 60 100% 50%;
+}
+
+html.high-contrast body,
+html.high-contrast #root {
+  background-color: #000 !important;
+  color: #fff !important;
+}
+
+/* Force text colors */
+html.high-contrast [class*="nodrag"] {
+  color: #000 !important;
+}
+
+html.high-contrast [class*="text-gray"],
+html.high-contrast [class*="text-slate"] {
+  color: #e5e5e5 !important;
+}
+
+/* Info / success boxes */
+html.high-contrast [class*="bg-green"],
+html.high-contrast [class*="bg-red"],
+html.high-contrast [class*="bg-purple"],
+html.high-contrast [class*="bg-blue"],
+html.high-contrast [class*="bg-yellow"],
+html.high-contrast [class*="bg-gray"],
+html.high-contrast [class*="bg-white"] {
+  background-color: #111 !important;
+  border-color: #fff !important;
+}
+
+html.high-contrast [class*="text-green"],
+html.high-contrast [class*="text-red"],
+html.high-contrast [class*="text-purple"],
+html.high-contrast [class*="text-blue"] {
+  color: #ff0 !important;
+}
+
+/* Buttons */
+html.high-contrast button {
+  background-color: #000 !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+}
+
+html.high-contrast button:hover:not(:disabled) {
+  background-color: #ff0 !important;
+  color: #000 !important;
+  border-color: #ff0 !important;
+}
+
+html.high-contrast button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+html.high-contrast button[aria-pressed="true"],
+html.high-contrast button.active,
+html.high-contrast .bg-gray-200 {
+  background-color: #ff0 !important;
+  color: #000 !important;
+  border-color: #ff0 !important;
+}
+
+/* Inputs / textareas / selects */
+html.high-contrast input,
+html.high-contrast textarea,
+html.high-contrast select {
+  background-color: #000 !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+}
+
+html.high-contrast input::placeholder,
+html.high-contrast textarea::placeholder {
+  color: #aaa !important;
+}
+
+/* Focus ring for keyboard navigation */
+html.high-contrast *:focus-visible {
+  outline: 3px solid #ff0 !important;
+  outline-offset: 2px;
+}
+
+/* Rounded info labels */
+html.high-contrast [class*="rounded"],
+html.high-contrast [class*="border"] {
+  border-color: #fff !important;
+}
+
+/* Graph SVG */
+html.high-contrast svg text {
+  fill: #fff !important;
+}
+
+html.high-contrast svg line,
+html.high-contrast svg path,
+html.high-contrast svg polyline {
+  stroke: #fff !important;
+}
+
+html.high-contrast svg circle,
+html.high-contrast svg ellipse,
+html.high-contrast svg rect {
+  stroke: #fff !important;
+  fill: #000 !important;
+}
+
+/* Tables */
+html.high-contrast th,
+html.high-contrast td {
+  border-color: #fff !important;
+  background-color: #000 !important;
+  color: #fff !important;
+}
+
+html.high-contrast tr:nth-child(even) td {
+  background-color: #111 !important;
+}
