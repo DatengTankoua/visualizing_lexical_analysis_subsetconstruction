@@ -289,10 +289,12 @@ GraphViewer.tsx     SubsetTable.tsx
      StepControls.tsx
 Navigation (vor/zurück/Auto-Play)
 
-WordSimulationPanel.tsx 
-(UI + Wortsimulation) 
-   simulateDfaRun()  
-   SimulationResult
+     WordSimulationPanel.tsx 
+     (UI + Wortsimulation) 
+       
+       
+       simulateDfaRun()  
+       SimulationResult  
 
     
      exportDfaToAef()
