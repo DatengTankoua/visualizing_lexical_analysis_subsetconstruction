@@ -150,11 +150,11 @@ Die **DFA-Übergangstabelle** zeigt den aktuellen Zustand farblich hervorgehoben
 
 ---
 
-## 7. DFA-Wortsimulation
+## 7. DFA-Wortsimulation(Zusatzanforderung)
 
 ### Eingabe
 
-Der Benutzer kann ein Wort (z. B. `abba`) in das Eingabefeld über dem DFA-Graphen eingeben.
+Der Benutzer kann ein Wort (z. B. `101`) in das Eingabefeld über dem DFA-Graphen eingeben.
 
 ### Steuerung
 
@@ -169,8 +169,11 @@ Der Benutzer kann ein Wort (z. B. `abba`) in das Eingabefeld über dem DFA-Graph
 
 Während der Simulation werden zwei Dinge gleichzeitig dargestellt:
 
-- Der aktuelle Zustand wird im DFA-Graph hervorgehoben
-- Der Fortschritt im Wort wird angezeigt (bereits gelesen / aktuelles Symbol / Rest)
+- Der aktuelle Zustand wird im DFA-Graph hervorgehoben  
+- Der Fortschritt im Wort wird angezeigt:
+  - Grau: bereits verarbeitet  
+  - Gelb: aktuelles Symbol  
+  - Schwarz: verbleibend  
 
 ### Ergebnis
 
@@ -179,7 +182,7 @@ Nach der Simulation wird angezeigt, ob das Wort akzeptiert oder abgelehnt wird.
 - **Accepted**: Endzustand ist akzeptierend
 - **Rejected**: Kein akzeptierender Zustand erreicht oder Simulation bricht ab
 
-### Hinweis
+### Fehlermeldungen
 
 Falls für ein Symbol keine Transition existiert, wird die Simulation vorzeitig beendet.
 
