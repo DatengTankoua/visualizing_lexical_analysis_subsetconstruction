@@ -121,10 +121,19 @@ interface GraphViewerProps {
 ### simulateDfaRun.ts
 
 ```typescript
-function simulateDfaRun(dfa: DFA, word: string)
+function simulateDfaRun(dfa: DFA, word: string): SimulationResult
 ```
 
+### WordSimulationPanel.tsx
+
+```typescript
+interface Props {
+  dfa: DFA | null;
+  onActiveStateChange?: (stateId: string | null) => void;
+}
+```
 ---
+
 
 ## 4. TypeScript-Typen (`src/core/models/types.ts`)
 
@@ -176,6 +185,8 @@ type ParseResult =
 | `DSLInput.test.tsx` | 24 | UI-Komponente |
 | `GraphViewer.test.tsx` | 13 | Graph-Rendering |
 | `SubsetTable.test.tsx` | 16 | DFA-Tabelle |
+| `WordSimulationPanel.test.tsx` | 7 | UI-Simulation |
+| `simulateDfaRun.test.ts` | 4 | Simulationslogik |
 | `example-nfa.test.ts` | 17 | Integration |
 | **Gesamt** | **124 / 124** |  100% passing |
 
@@ -258,6 +269,12 @@ GraphViewer.tsx     SubsetTable.tsx
     
      StepControls.tsx
 Navigation (vor/zurück/Auto-Play)
+
+WordSimulationPanel.tsx 
+(UI + Wortsimulation) 
+   simulateDfaRun()  
+   SimulationResult
+
     
      exportDfaToAef()
 DFA-Export als .aef
