@@ -169,6 +169,11 @@ export default function WordSimulationPanel({
               <span>{t("simulation.legend.remaining")}</span>
             </div>
           </div>
+
+          {/* 正常结束 → akzeptiert */}
+          {simulationResult && !simulationResult.stoppedEarly && isLastStep && (
+            <div className="mt-2 text-sm font-medium text-green-600"> {t("simulation.accepted")}</div>
+        )}
           
           {/* 错误提示（只在中途失败时显示） */}
           {inputWord !== "" && simulationResult.stoppedEarly &&isLastStep && (
