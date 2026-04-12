@@ -151,6 +151,29 @@ const tolgee = Tolgee()
           empty: "DFA Visualisierung hier",
         },
       },
+      simulation: {
+        title: "DFA-Wortsimulation",
+        inputPlaceholder: "Wort eingeben",
+        step: "Step",
+        currentState: "Aktueller Zustand",
+        wordProgress: "Verarbeitung des Wortes",
+        emptyInput: "Leere Eingabe",
+        legend: {
+          processed: "bereits verarbeitet",
+          current: "aktuelles Symbol",
+          remaining: "verbleibend",
+        },
+        errors: {
+          noTransition:"Keine gültige Transition für Symbol {symbol} vom Zustand {state}.",
+          stoppedEarly: "Die Simulation wurde vorzeitig beendet.",
+        },
+        buttons: {
+          start: "Start",
+          back: "Zurück",
+          next: "Weiter",
+          reset: "Zurücksetzen",
+        },
+      },
     },
 
     en: {
@@ -284,6 +307,29 @@ const tolgee = Tolgee()
         dfa: {
           step: "DFA (Step)",
           empty: "DFA visualization here",
+        },
+      },
+      simulation: {
+        title: "DFA Word Simulation",
+        inputPlaceholder: "Enter a word",
+        step: "Step",
+        currentState: "Current State",
+        wordProgress: "Word Processing",
+        emptyInput: "Empty input",
+        legend: {
+          processed: "already processed",
+          current: "current symbol",
+          remaining: "remaining",
+        },
+        errors: {
+          noTransition:"No valid transition for symbol {symbol} from state {state}.",
+          stoppedEarly: "The simulation was stopped early.",
+        },
+        buttons: {
+          start: "Start",
+          back: "Back",
+          next: "Next",
+          reset: "Reset",
         },
       },
     },

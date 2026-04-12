@@ -4,6 +4,7 @@ import {
   simulateDfaRun,
   type SimulationResult,
 } from "../../core/algorithm/simulateDfaRun";
+import { useTranslate } from "@tolgee/react";
 
 type Props = {
   dfa: DFA | null;
@@ -14,6 +15,7 @@ export default function WordSimulationPanel({
   dfa,
   onActiveStateChange,
 }: Props) {
+  const { t } = useTranslate();
   const [inputWord, setInputWord] = useState("");
   const [simulationResult, setSimulationResult] =
     useState<SimulationResult | null>(null);
@@ -71,32 +73,30 @@ export default function WordSimulationPanel({
 
   return (
     <div className="rounded-xl border border-gray-200 p-4 mb-4 bg-white">
-      <h3 className="text-base font-semibold mb-3">DFA-Wortsimulation</h3>
+      <h3 className="text-base font-semibold mb-3">{t("simulation.title")}</h3>
 
-      <div className="flex items-center gap-2 mb-3 flex-nowrap">
+      <div className="flex flex-wrap items-center gap-2 mb-3">
         <input
           type="text"
           value={inputWord}
           onChange={(e) => setInputWord(e.target.value)}
-          placeholder="Wort eingeben"
+          placeholder={t("simulation.inputPlaceholder")}
           disabled={!dfa}
-          className="border rounded px-3 py-2 w-40"
+          className="border rounded px-3 py-2 flex-1 min-w-[220px]"
         />
 
         <button
           onClick={handleStart}
           disabled={!dfa}
-          className="px-3 py-2 rounded border whitespace-nowrap"
-        >
-          Start
+          className="px-3 py-2 rounded border bg-white hover:bg-gray-100 active:bg-gray-200 transition-colors whitespace-nowrap"
+        >{t("simulation.buttons.start")}
         </button>
 
         <button
           onClick={handleBack}
           disabled={!simulationResult || currentStepIndex === 0}
-          className="px-3 py-2 rounded border whitespace-nowrap"
-        >
-          Back
+          className="px-3 py-2 rounded border bg-white hover:bg-gray-200 active:bg-gray-300 transition-colors whitespace-nowrap"
+        >{t("simulation.buttons.back")}
         </button>
 
         <button
@@ -105,75 +105,79 @@ export default function WordSimulationPanel({
             !simulationResult ||
             currentStepIndex >= simulationResult.steps.length - 1
           }
-          className="px-3 py-2 rounded border whitespace-nowrap"
-        >
-          Next
+          className="px-3 py-2 rounded border bg-white hover:bg-gray-200 active:bg-gray-300 transition-colors whitespace-nowrap"
+        >{t("simulation.buttons.next")}
         </button>
 
         <button
           onClick={handleReset}
-          className="px-3 py-2 rounded border whitespace-nowrap"
-        >
-          Reset
+          className="px-3 py-2 rounded border bg-white hover:bg-gray-200 active:bg-gray-300 transition-colors whitespace-nowrap"
+        >{t("simulation.buttons.reset")}
         </button>
       </div>
 
-      
       {currentStep && simulationResult && (
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-sm text-gray-500">
-              Schritt {currentStepIndex} / {totalSteps}
-            </span>
+        <div className="space-y-3 text-sm">
+            <div className="text-sm text-gray-500">{t("simulation.step")} {currentStepIndex} / {totalSteps}</div>
             
             <div>
-              <span className="font-medium">Aktueller Zustand:</span>{" "}
-              {currentStep.currentStateId}
+              <div className="text-gray-600">{t("simulation.currentState")}:</div>
+              <div className="font-mono text-xl font-semibold mt-1">{currentStep.currentStateId}</div>
             </div>
-          </div>
-          
-          {!isLastStep ? (
-            <div className="font-mono text-lg tracking-wider">
-              {currentStepIndex > 0 && (
-              <span className="bg-gray-200 rounded px-1 text-gray-700">
-                {currentStep.consumed}
-              </span>
+
+            <div>
+              <div className="font-medium text-gray-600 mb-1">{t("simulation.wordProgress")}:</div>
+              
+              {inputWord === "" ? (
+                <div className="text-gray-400 italic">{t("simulation.emptyInput")}</div>
+              
+              ) : simulationResult.stoppedEarly && isLastStep ?(
+                <div className="font-mono text-xl font-semibold tracking-wider">
+                  {currentStepIndex > 0 && (
+                    <span className="bg-gray-300 rounded px-1 text-gray-500">{currentStep.consumed}</span>
+                  )}
+                  <span className="text-black">{currentStep.currentSymbol ?? ""}{currentStep.remaining}</span>
+                </div>
+              ) :isLastStep ? (
+                <div className="font-mono text-xl font-semibold tracking-wider">
+                  <span className="bg-gray-300 rounded px-1 text-gray-500">{currentStep.consumed}</span>
+                </div>
+              ) : (
+                <div className="font-mono text-xl font-semibold tracking-wider">
+                  {currentStepIndex > 0 && (
+                    <span className="bg-gray-300 rounded px-1 text-gray-500">{currentStep.consumed}</span>
+                  )}
+                  <span className="bg-yellow-200 rounded px-1 font-semibold text-yellow-700">{currentStep.currentSymbol ?? ""}</span>
+                  <span className="text-black">{currentStep.remaining}</span>
+                </div>
               )}
-              <span className="bg-yellow-200 rounded px-1 font-semibold text-gray-900">
-                {currentStep.currentSymbol ?? ""}
-              </span>
-              <span className="text-black">
-                {currentStep.remaining}
-              </span>
             </div>
-          ) : (
-            <div className="font-mono text-lg tracking-wider">
-              <span className="bg-gray-200 rounded px-1 text-gray-700">
-                {currentStep.consumed}
-              </span>
-            </div>
-          )}
-          <div className="text-xs mt-2 flex items-center gap-3 flex-wrap">
+            
+            <div className="text-xs mt-2 flex items-center gap-4 text-gray-600">
             <div className="flex items-center gap-1">
               <span className="w-3 h-3 bg-gray-300 rounded"></span>
-              <span>verarbeitet</span>
+              <span>{t("simulation.legend.processed")}</span>
             </div>
             
             <div className="flex items-center gap-1">
-              <span className="w-3 h-3 bg-yellow-200 rounded"></span>
-              <span>aktuell</span>
+              <span className="w-3 h-3 bg-yellow-300 rounded"></span>
+              <span>{t("simulation.legend.current")}</span>
             </div>
             
             <div className="flex items-center gap-1">
               <span className="w-3 h-3 bg-black rounded"></span>
-              <span>verbleibend</span>
+              <span>{t("simulation.legend.remaining")}</span>
             </div>
           </div>
           
-          {isLastStep && (
-            <div className="text-sm font-medium text-gray-700">
-              Ende der Simulation
-            </div>
+          {/* 错误提示（只在中途失败时显示） */}
+          {inputWord !== "" && simulationResult.stoppedEarly &&isLastStep && (
+            <div className="mt-2 text-sm font-medium text-red-600">
+              {t("simulation.errors.noTransition", {
+                symbol: currentStep.currentSymbol,
+                state: currentStep.currentStateId,
+              })}{" "}
+            <br />{t("simulation.errors.stoppedEarly")}</div>
           )}
         </div>
       )}
