@@ -10,12 +10,13 @@
 
 ## 1. Projektziel
 
-Interaktive Webanwendung zur Visualisierung der Umwandlung von NFAs in DFAs mittels Subset Construction Algorithmus  als didaktisches Tool für Studierende der Theoretischen Informatik.
+Interaktive Webanwendung zur Visualisierung der Umwandlung von NFAs in DFAs mittels Subset Construction Algorithmus sowie zur Simulation von Eingabewörtern auf dem erzeugten DFA als didaktisches Tool für Studierende der Theoretischen Informatik.
 
 **Kernfunktionen:**
 - NFA-Import im AEF-Format (Datei, Texteingabe, Beispiele)
 - Graph-Visualisierung von NFA und DFA (nebeneinander)
 - Schrittweise Subset Construction mit Auto-Play
+- Simulation von Eingabewörtern auf dem DFA (Schritt-für-Schritt)
 - DFA-Export im AEF-Format
 - Mehrsprachige UI (Deutsch / Englisch)
 - Kontrastreicher Modus (High-Contrast) für Barrierearmut
@@ -31,6 +32,7 @@ Interaktive Webanwendung zur Visualisierung der Umwandlung von NFAs in DFAs mitt
 | Styling | TailwindCSS 4.1.16 |
 | Graph | ReactFlow 11.11.4 + Dagre 0.8.5 |
 | i18n | @tolgee/react 6.2.7 (DE/EN) |
+| Tests | Vitest 2.1.9 + @testing-library/react 16.3.1 |
 | Tests | Vitest 2.1.9 + @testing-library/react 16.3.1 |
 | Linting | ESLint 9.36.0 |
 
@@ -55,6 +57,11 @@ DSL-Eingabe (AEF)
              
        GraphViewer
    (NFA + DFA nebeneinander)
+      
+      WordSimulationPanel
+      (Wortsimulation UI)
+         simulateDfaRun.ts
+         (Simulation der Zustandsfolge)
              
              
        exportAef.ts  Download (.aef)
@@ -70,10 +77,12 @@ DSL-Eingabe (AEF)
 | `GraphViewer.tsx` | ReactFlow-Graph: NFA und DFA |
 | `StepControls.tsx` | Navigation, Auto-Play, Geschwindigkeit |
 | `SubsetTable.tsx` | DFA-Übergangstabelle mit Farbcodierung |
+| `WordSimulationPanel.tsx` | UI für die Simulation eines Eingabewortes auf dem DFA |
 | `LanguageToggle.tsx` | Sprachwechsel DE/EN |
 | `HighContrastToggle.tsx` | Kontrastreicher Modus (Barrierearmut) |
 | `dslParser.ts` | AEF  NFA-Objekt (12+ Validierungsregeln) |
 | `subsetConstruction.ts` | NFA  DFA (FIFO Subset Construction), Schritttexte in Englisch |
+| `simulateDfaRun.ts` | Simulation eines Eingabewortes auf dem DFA (Zustandsfolge) |
 | `exportAef.ts` | DFA  AEF-Datei |
 | `tolgeeInstance.ts` | Gemeinsame Tolgee-Instanz (DE/EN Übersetzungen) |
 
@@ -112,6 +121,21 @@ interface Transition {
 type ParseResult =
   | { success: true; nfa: NFA }
   | { success: false; error: string; line?: number };
+
+interface SimulationStep {
+  stepIndex: number;
+  currentStateId: string;
+  currentSymbol: string | null;
+  consumed: string;
+  remaining: string;
+}
+
+interface SimulationResult {
+  accepted: boolean;
+  stoppedEarly: boolean;
+  finalStateId: string;
+  steps: SimulationStep[];
+}
 ```
 
 ---
@@ -145,8 +169,10 @@ q0 -ε> q3;               # Epsilon-Transition
 | `DSLInput.test.tsx` | 24 | UI-Komponente |
 | `GraphViewer.test.tsx` | 13 | Graph-Rendering |
 | `SubsetTable.test.tsx` | 16 | DFA-Tabelle |
+| `WordSimulationPanel.test.tsx` | 7 | UI-Simulation |
+| `simulateDfaRun.test.ts`      | 4 | DFA-Wortsimulation |
 | `example-nfa.test.ts` | 17 | Integration mit echten NFA-Dateien |
-| **Gesamt** | **124 / 124** |  100% passing |
+| **Gesamt** | **135 / 135** |  100% passing |
 
 ---
 
@@ -165,21 +191,25 @@ npm run test:coverage  # Coverage-Report
 
 ## 9. Erweiterung: DFA-Wortsimulation
 
-Diese zusätzliche Funktion ermöglicht es, ein Eingabewort auf dem generierten DFA Schritt für Schritt zu simulieren.
+Diese Zusatzfunktion ermöglicht die schrittweise Simulation eines Eingabewortes auf dem erzeugten DFA.
 
+Dabei wird:
 - der aktuelle Zustand im Graph hervorgehoben
-- der Fortschritt im Wort visualisiert
-- angezeigt, ob das Wort akzeptiert wird
+- der Fortschritt im Wort visualisiert (verarbeitet / aktuelles Symbol / verbleibend)
+- angezeigt, ob das Wort akzeptiert wird oder die Simulation vorzeitig endet
+
+Die Simulation basiert auf der Funktion `simulateDfaRun` und wird über das `WordSimulationPanel` gesteuert.
+
+Die Funktion steht erst nach erfolgreicher DFA-Konstruktion zur Verfügung.
+---
+
+## 10. Projektstatus
+
+**Abgeschlossen:** AEF-Parser, NFA-/DFA-Visualisierung, Datei-Upload, Subset Construction (FIFO), Step-Navigation, DFA-Wortsimulation, DFA-Export, Mehrsprachigkeit (DE/EN), High-Contrast-Modus (Barrierearmut), 124 Tests (100% passing)
 
 ---
 
-## 9. Projektstatus
-
-**Abgeschlossen:** AEF-Parser, NFA-/DFA-Visualisierung, Datei-Upload, Subset Construction (FIFO), Step-Navigation, DFA-Export, Mehrsprachigkeit (DE/EN), High-Contrast-Modus (Barrierearmut), 124 Tests (100% passing)
-
----
-
-## 10. Referenzen
+## 11. Referenzen
 
 - [ReactFlow Docs](https://reactflow.dev/), [Dagre](https://github.com/dagrejs/dagre), [Tolgee](https://tolgee.io/)
 
