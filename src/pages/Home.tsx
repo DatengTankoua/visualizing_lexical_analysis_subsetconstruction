@@ -5,12 +5,13 @@ import StepControls from "../components/Controls/StepControls";
 import SubsetTable from "../components/SubsetTable/SubsetTable";
 import { parseDSL } from "../core/parser/dslParser";
 import { convertNFAtoDFAWithSteps } from "../core/algorithm/subsetConstruction";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { NFA, ParseResult, DFA } from "../core/models/types";
 import type { SubsetConstructionStep } from "../core/algorithm/subsetConstruction";
 import LanguageToggle from "../components/Controls/LanguageToggle";
 import HighContrastToggle from "../components/Controls/HighContrastToggle";
 import { exportDfaToAef } from "../core/export/exportAef";
+import WordSimulationPanel from "../components/WordSimulation/WordSimulationPanel";
 
 export default function Home() {
   const { t } = useTranslate();
@@ -19,6 +20,11 @@ export default function Home() {
   const [currentStep, setCurrentStep] = useState<SubsetConstructionStep | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [showNfa, setShowNfa] = useState(true);
+  const [activeStateId, setActiveStateId] = useState<string | null>(null);
+
+  useEffect(() => {
+    console.log("activeStateId:", activeStateId);
+  }, [activeStateId]);
 
   // Convert NFA to DFA with steps when NFA changes
   const conversionResult = useMemo(() => {
@@ -29,16 +35,25 @@ export default function Home() {
   const dfa: DFA | null = conversionResult?.dfa || null;
   const steps = conversionResult?.steps || [];
   const canExport = !!dfa && !!dfa.name && !!dfa.regex;
+  
+  // 只有显示完整的dfa 才能进行 simulation
+  const isDfaReady = currentStep?.isComplete ?? false;
 
 
   const handleStepChange = (step: SubsetConstructionStep, index: number) => {
     setCurrentStep(step);
     setCurrentStepIndex(index);
+
+    // 👉 只有不是最终 DFA 时才清掉 simulation 高亮
+    if (!step.isComplete) {
+      setActiveStateId(null);
+    }
   };
 
   const handleLoad = (text: string) => {
     const result: ParseResult = parseDSL(text);
     setParseResult(result);
+    setActiveStateId(null);
     
     if (result.success && result.nfa) {
       setNfa(result.nfa);
@@ -272,10 +287,23 @@ export default function Home() {
                 {t("graph.dfa.step")} {currentStepIndex + 1}
                 {steps.length > 0 && ` / ${steps.length}`}
               </h3>
+              {dfa && isDfaReady && (
+                <WordSimulationPanel
+                dfa={dfa}
+                onActiveStateChange={setActiveStateId}
+                />
+              )}
               <div className="border rounded-lg overflow-hidden">
                 {dfa && currentStep ? (
                   <GraphViewer
-                    nfa={{
+                    nfa={activeStateId ? {
+                      ...dfa,
+                      states: dfa.states,
+                      transitions: dfa.transitions,
+                      startState: dfa.startState,
+                      acceptStates: dfa.acceptStates,
+                      alphabet: dfa.alphabet,
+                    }: {
                       ...dfa,
                       states: currentStep.dfaStates.map(s =>
                         s.length === 1 ? s[0] : `${s.join('_')}`
@@ -285,7 +313,8 @@ export default function Home() {
                       acceptStates: dfa.acceptStates,
                       alphabet: dfa.alphabet,
                     }}
-                  />
+                    activeStateId={activeStateId}
+                 />
                 ) : (
                   <div className="h-48 grid place-items-center text-gray-400 text-sm">
                     {t("graph.dfa.empty")}

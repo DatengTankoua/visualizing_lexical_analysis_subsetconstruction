@@ -35,8 +35,13 @@ src/
     SubsetTable/
         SubsetTable.tsx          # DFA-Übergangstabelle
         SubsetTable.test.tsx
+    WordSimulationPanel/         # UI für DFA-Wortsimulation (Eingabe, Schrittanzeige, Navigation)
+        WordSimulationPanel.tsx
+        WordSimulationPanel.test.tsx
  core/
     algorithm/
+       simulateDfaRun.ts        # Logik der DFA-Wortsimulation
+       simulateDfaRun.test.ts
        subsetConstruction.ts    # NFADFA Algorithmus (Schritttexte in English)
        subsetConstruction.test.ts
     export/
@@ -85,7 +90,6 @@ Führt FIFO-basierte Subset Construction aus. Gibt DFA-Objekt + Schritthistorie 
 ```typescript
 function exportDfaToAef(dfa: DFA): string
 ```
-
 Serialisiert DFA als AEF-Text.
 Normalisiert Zustandsnamen: `{q0,q1}`  `q0_q1`.
 
@@ -118,7 +122,22 @@ interface GraphViewerProps {
 }
 ```
 
+### simulateDfaRun.ts
+
+```typescript
+function simulateDfaRun(dfa: DFA, word: string): SimulationResult
+```
+
+### WordSimulationPanel.tsx
+
+```typescript
+interface Props {
+  dfa: DFA | null;
+  onActiveStateChange?: (stateId: string | null) => void;
+}
+```
 ---
+
 
 ## 4. TypeScript-Typen (`src/core/models/types.ts`)
 
@@ -153,6 +172,21 @@ interface Transition {
 type ParseResult =
   | { success: true; nfa: NFA }
   | { success: false; error: string; line?: number };
+
+interface SimulationStep {
+  stepIndex: number;
+  currentStateId: string;
+  currentSymbol: string | null;
+  consumed: string;
+  remaining: string;
+}
+
+interface SimulationResult {
+  accepted: boolean;
+  stoppedEarly: boolean;
+  finalStateId: string;
+  steps: SimulationStep[];
+}
 ```
 
 ---
@@ -170,8 +204,10 @@ type ParseResult =
 | `DSLInput.test.tsx` | 24 | UI-Komponente |
 | `GraphViewer.test.tsx` | 13 | Graph-Rendering |
 | `SubsetTable.test.tsx` | 16 | DFA-Tabelle |
+| `WordSimulationPanel.test.tsx` | 7 | UI-Simulation |
+| `simulateDfaRun.test.ts` | 4 | Simulationslogik |
 | `example-nfa.test.ts` | 17 | Integration |
-| **Gesamt** | **124 / 124** |  100% passing |
+| **Gesamt** | **135 / 135** |  100% passing |
 
 ### Tolgee-Mock (Pflicht für Komponententen-Tests)
 
@@ -252,6 +288,14 @@ GraphViewer.tsx     SubsetTable.tsx
     
      StepControls.tsx
 Navigation (vor/zurück/Auto-Play)
+
+     WordSimulationPanel.tsx 
+     (UI + Wortsimulation) 
+       
+       
+       simulateDfaRun()  
+       SimulationResult  
+
     
      exportDfaToAef()
 DFA-Export als .aef

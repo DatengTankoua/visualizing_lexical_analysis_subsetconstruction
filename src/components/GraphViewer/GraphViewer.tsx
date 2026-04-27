@@ -23,8 +23,11 @@ import "reactflow/dist/style.css";
 import type { NFA, Transition } from "../../core/models/types";
 import dagre from "dagre";
 
-type ViewerProps = { nfa?: NFA; interactive?: boolean };
-
+type ViewerProps = {
+  nfa?: NFA;
+  interactive?: boolean;
+  activeStateId?: string | null; // Aktiver Zustand der Wortsimulation wird im DFA-Graph hervorgehoben
+};
 type OffsetEdgeData = {
   offset?: number;
 };
@@ -97,11 +100,11 @@ function OffsetBezierEdge(props: EdgeProps) {
 const edgeTypes = { offsetBezier: OffsetBezierEdge };
 
 /* ---------------- Zustand als Kreis mit START / ACCEPT ---------------- */
-function StateNode({ data }: { data: { id: string; isStart?: boolean; isAccept?: boolean } }) {
-  const { id, isStart, isAccept } = data;
+function StateNode({ data }: { data: { id: string; isStart?: boolean; isAccept?: boolean;isActive?: boolean } }) {
+  const { id, isStart, isAccept, isActive } = data;
   const size = 72;
   const stroke = isAccept ? "#2563eb" : "#4b5563";
-  const fill = isStart ? "#d1fae5" : "#ffffff";
+  const fill =  isActive ? "#fef9c3" : isStart ? "#d1fae5" : "#ffffff";
 
   return (
     <div style={{ position: "relative", width: size, height: size }}>
@@ -126,7 +129,7 @@ function StateNode({ data }: { data: { id: string; isStart?: boolean; isAccept?:
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+          transition: "all 0.2s ease",
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", lineHeight: 1.1 }}>
@@ -140,7 +143,7 @@ function StateNode({ data }: { data: { id: string; isStart?: boolean; isAccept?:
               ACCEPT
             </span>
           )}
-          <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>{id}</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: isActive ? "#b45309" : "#111827" }}>{id}</span>
         </div>
       </div>
 
@@ -161,7 +164,7 @@ function StateNode({ data }: { data: { id: string; isStart?: boolean; isAccept?:
 const nodeTypes = { state: StateNode };
 
 /* ---------------- Wrapper ---------------- */
-export default function GraphViewer({ nfa, interactive = true }: ViewerProps) {
+export default function GraphViewer({ nfa, interactive = true, activeStateId = null, }: ViewerProps) { // Aktiver Zustand der Wortsimulation wird im DFA-Graph hervorgehoben
   if (!nfa) {
     return (
       <div className="border p-4 h-[480px] rounded-xl grid place-items-center text-gray-500">
@@ -169,12 +172,15 @@ export default function GraphViewer({ nfa, interactive = true }: ViewerProps) {
       </div>
     );
   }
-  return <GraphCanvas nfa={nfa} interactive={interactive} />;
+  return <GraphCanvas nfa={nfa} interactive={interactive} activeStateId={activeStateId} />; // Aktiver Zustand der Wortsimulation wird im DFA-Graph hervorgehoben
 }
 
 /* ---------------- Canvas ---------------- */
-function GraphCanvas({ nfa, interactive = true }: { nfa: NFA; interactive?: boolean }) {
+function GraphCanvas({ nfa, interactive = true, activeStateId = null }: { nfa: NFA; interactive?: boolean; activeStateId?: string | null }) { // Aktiver Zustand der Wortsimulation wird im DFA-Graph hervorgehoben
   const { states, startState, acceptStates, transitions } = nfa;
+
+  console.log("Graph states:", states);
+  console.log("Highlight state:", activeStateId);
 
   const initial = useMemo(() => {
     const dagrePos = layoutWithDagre(states, transitions);
@@ -185,13 +191,14 @@ function GraphCanvas({ nfa, interactive = true }: { nfa: NFA; interactive?: bool
     const nodes: Node[] = states.map((s) => {
       const isStart = s === startState;
       const isAccept = acceptStates.includes(s);
+      const isActive = false; // Aktiver Zustand der Wortsimulation wird im DFA-Graph hervorgehoben
       const p = dagrePos.get(s) ?? { x: 0, y: 0 };
 
       return {
         id: s,
         type: "state",
         position: p,
-        data: { id: s, isStart, isAccept },
+        data: { id: s, isStart, isAccept, isActive },
       };
     });
 
@@ -339,7 +346,7 @@ function GraphCanvas({ nfa, interactive = true }: { nfa: NFA; interactive?: bool
     });
 
     return { nodes, edges };
-  }, [states, startState, acceptStates, transitions]);
+  }, [states, startState, acceptStates, transitions]);// Aktiver Zustand der Wortsimulation wird im DFA-Graph hervorgehoben
 
   const [nodes, setNodes] = useState<Node[]>(initial.nodes);
   const [edges, setEdges] = useState<Edge[]>(initial.edges);
@@ -348,6 +355,18 @@ function GraphCanvas({ nfa, interactive = true }: { nfa: NFA; interactive?: bool
     setNodes(initial.nodes);
     setEdges(initial.edges);
   }, [initial]);
+
+  useEffect(() => {
+    setNodes((prevNodes) =>
+      prevNodes.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          isActive: activeStateId != null && node.id === activeStateId,
+        },
+      }))
+    );
+  }, [activeStateId]);
 
   const onNodesChange = useCallback(
     (c: NodeChange[]) => {

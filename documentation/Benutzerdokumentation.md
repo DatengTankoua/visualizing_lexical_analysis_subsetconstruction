@@ -150,7 +150,45 @@ Die **DFA-Übergangstabelle** zeigt den aktuellen Zustand farblich hervorgehoben
 
 ---
 
-## 7. DFA-Export
+## 7. DFA-Wortsimulation(Zusatzanforderung)
+
+### Eingabe
+
+Der Benutzer kann ein Wort (z. B. `101`) in das Eingabefeld über dem DFA-Graphen eingeben.
+
+### Steuerung
+
+| Button | Funktion |
+|--------|----------|
+| Start | Startet die Simulation |
+| Next | Geht einen Schritt weiter |
+| Back | Geht einen Schritt zurück |
+| Reset | Setzt die Simulation zurück |
+
+### Visualisierung
+
+Während der Simulation werden zwei Dinge gleichzeitig dargestellt:
+
+- Der aktuelle Zustand wird im DFA-Graph hervorgehoben  
+- Der Fortschritt im Wort wird angezeigt:
+  - Grau: bereits verarbeitet  
+  - Gelb: aktuelles Symbol  
+  - Schwarz: verbleibend  
+
+### Ergebnis
+
+Nach der Simulation wird angezeigt, ob das Wort akzeptiert oder abgelehnt wird.
+
+- **Accepted**: Endzustand ist akzeptierend
+- **Rejected**: Kein akzeptierender Zustand erreicht oder Simulation bricht ab
+
+### Fehlermeldungen
+
+Falls für ein Symbol keine Transition existiert, wird die Simulation vorzeitig beendet.
+
+---
+
+## 8. DFA-Export
 
 Nach erfolgreicher Konvertierung kann der DFA als `.aef`-Datei heruntergeladen werden.
 
@@ -172,7 +210,7 @@ q1 -c> (q2);
 
 ---
 
-## 8. Fehlermeldungen
+## 9. Fehlermeldungen
 
 | Fehlermeldung | Ursache | Lösung |
 |---------------|---------|--------|
