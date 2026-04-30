@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { parseDSL } from './dslParser';
-import type { NFA } from '../models/types';
+import { parseDSL } from '@/core/parser/dslParser';
+import type { NFA } from '@/core/models/types';
 
 // Helper function to assert successful parse result
 function assertSuccess(result: ReturnType<typeof parseDSL>): asserts result is { success: true; nfa: NFA } {

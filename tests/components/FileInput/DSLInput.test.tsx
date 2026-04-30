@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import DSLInput from './DSLInput';
+import DSLInput from '@/components/FileInput/DSLInput';
 
 vi.mock('@tolgee/react', () => ({
   useTranslate: () => ({
@@ -269,7 +269,7 @@ q1 -b> (q2);`;
         expect(textarea).toHaveValue('.q0 -a> (q1);');
       });
       
-      expect(global.fetch).toHaveBeenCalledWith(`${import.meta.env.BASE_URL}examples/example_nfa.aef`);
+      expect(global.fetch).toHaveBeenCalledWith('/examples/example_nfa.aef');
     });
 
     it('should disable select while loading', async () => {

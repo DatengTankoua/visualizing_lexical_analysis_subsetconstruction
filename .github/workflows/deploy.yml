@@ -75,6 +75,8 @@ jobs:
           path: node_modules
           key: node-modules-${{ hashFiles('package-lock.json') }}
       - run: npm run build
+        env:
+          VITE_BASE_URL: /visualizing_lexical_analysis_subsetconstruction/
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main'
         with:

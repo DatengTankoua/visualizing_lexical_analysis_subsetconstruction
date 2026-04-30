@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
-import SubsetTable from './SubsetTable';
-import type { SubsetConstructionStep } from '../../core/algorithm/subsetConstruction';
+import SubsetTable from '@/components/SubsetTable/SubsetTable';
+import type { SubsetConstructionStep } from '@/core/algorithm/subsetConstruction';
 
 vi.mock('@tolgee/react', () => ({
   useTranslate: () => ({

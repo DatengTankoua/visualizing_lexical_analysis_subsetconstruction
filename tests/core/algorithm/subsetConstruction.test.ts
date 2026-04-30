@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { convertNFAtoDFA, convertNFAtoDFAWithSteps } from './subsetConstruction';
-import type { NFA } from '../models/types';
+import { convertNFAtoDFA, convertNFAtoDFAWithSteps } from '@/core/algorithm/subsetConstruction';
+import type { NFA } from '@/core/models/types';
 
 describe('subsetConstruction', () => {
   describe('convertNFAtoDFA', () => {

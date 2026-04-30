@@ -5,7 +5,7 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/visualizing_lexical_analysis_subsetconstruction/',
+  base: process.env.VITE_BASE_URL ?? '/',
   plugins: [react()],
   css: {
     postcss: {

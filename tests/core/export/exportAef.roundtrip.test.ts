@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { exportDfaToAef } from "./exportAef";
-import { parseDSL } from "../parser/dslParser";
-import { convertNFAtoDFA } from "../algorithm/subsetConstruction";
-import type { DFA, Transition } from "../models/types";
+import { exportDfaToAef } from "@/core/export/exportAef";
+import { parseDSL } from "@/core/parser/dslParser";
+import { convertNFAtoDFA } from "@/core/algorithm/subsetConstruction";
+import type { DFA, Transition } from "@/core/models/types";
 
 function normalizeDfa(dfa: DFA) {
   const sortArr = (a: string[]) => [...a].sort();
