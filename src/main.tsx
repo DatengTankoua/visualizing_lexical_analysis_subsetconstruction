@@ -164,8 +164,9 @@ const tolgee = Tolgee()
           remaining: "verbleibend",
         },
         accepted: "Wort akzeptiert!",
+        rejected: "Wort nicht akzeptiert!",
         errors: {
-          noTransition:" Abgelehnt: Keine gültige Transition für Symbol {symbol} vom Zustand {state}.",
+          noTransition:" Keine gültige Transition für Symbol {symbol} vom Zustand {state}.",
           stoppedEarly: "Die Simulation wurde vorzeitig beendet.",
         },
         buttons: {
@@ -323,8 +324,9 @@ const tolgee = Tolgee()
           remaining: "remaining",
         },
         accepted: "Word accepted!",
+        rejected: "Word rejected!",
         errors: {
-          noTransition:" Rejected: No valid transition for symbol {symbol} from state {state}.",
+          noTransition:" No valid transition for symbol {symbol} from state {state}.",
           stoppedEarly: "The simulation was stopped early.",
         },
         buttons: {

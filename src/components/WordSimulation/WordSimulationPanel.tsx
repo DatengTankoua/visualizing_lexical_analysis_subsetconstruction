@@ -26,7 +26,7 @@ export default function WordSimulationPanel({
     return simulationResult.steps[currentStepIndex] ?? null;
   }, [simulationResult, currentStepIndex]);
 
-  // Hilfsvariablen für Anzeige (bessere Lesbarkeit im JSX)
+  //
   const totalSteps = simulationResult ? simulationResult.steps.length - 1 : 0;
   const isLastStep = simulationResult ? currentStepIndex === simulationResult.steps.length - 1 : false;
 
@@ -170,20 +170,26 @@ export default function WordSimulationPanel({
             </div>
           </div>
 
-          {/* 正常结束 → akzeptiert */}
-          {simulationResult && !simulationResult.stoppedEarly && isLastStep && (
-            <div className="mt-2 text-sm font-medium text-green-600"> {t("simulation.accepted")}</div>
-        )}
-          
-          {/* 错误提示（只在中途失败时显示） */}
-          {inputWord !== "" && simulationResult.stoppedEarly &&isLastStep && (
-            <div className="mt-2 text-sm font-medium text-red-600">
-              {t("simulation.errors.noTransition", {
-                symbol: currentStep.currentSymbol,
-                state: currentStep.currentStateId,
-              })}{" "}
-            <br />{t("simulation.errors.stoppedEarly")}</div>
+          {/* akzeptiert */}
+          {simulationResult && isLastStep && !simulationResult.stoppedEarly && simulationResult.accepted && (
+            <div className="mt-2 text-sm font-medium text-green-600">{t("simulation.accepted")}</div>
           )}
+          
+          {/* nicht akzeptiert */}
+          {simulationResult && isLastStep && !simulationResult.stoppedEarly && !simulationResult.accepted && (
+            <div className="mt-2 text-sm font-medium text-red-600">{t("simulation.rejected")}</div>
+          )}
+          
+          {/* unterbrochen */}
+          {simulationResult && inputWord !== "" && simulationResult.stoppedEarly && isLastStep && (
+            <div className="mt-2 text-sm font-medium text-red-600"> {t("simulation.errors.noTransition", {
+              symbol: currentStep.currentSymbol,
+              state: currentStep.currentStateId,
+            })}{" "}
+            <br />
+            {t("simulation.errors.stoppedEarly")}
+          </div>
+        )}
         </div>
       )}
     </div>

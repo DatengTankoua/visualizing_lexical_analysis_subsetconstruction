@@ -15,6 +15,7 @@ import { simulateDfaRun, type SimulationResult } from "./simulateDfaRun";
 import type { DFA } from "../models/types";
 
 describe("simulateDfaRun", () => {
+  // 
   it("akzeptiert ein gültiges Wort", () => {
     const dfa: DFA = {
       name: "Simple DFA",
@@ -31,14 +32,10 @@ describe("simulateDfaRun", () => {
 
     const result: SimulationResult = simulateDfaRun(dfa, "ab");
 
-    expect(result.accepted).toBe(true);
+    expect(result.accepted).toBe(true); //
     expect(result.stoppedEarly).toBe(false);
     expect(result.finalStateId).toBe("q2");
-    expect(result.steps.map((step) => step.currentStateId)).toEqual([
-      "q0",
-      "q1",
-      "q2",
-    ]);
+    expect(result.steps.map((step) => step.currentStateId)).toEqual(["q0","q1","q2",]);
   });
 
   it("lehnt ein Wort ab, wenn der Endzustand nicht akzeptierend ist", () => {
@@ -61,10 +58,7 @@ describe("simulateDfaRun", () => {
     expect(result.accepted).toBe(false);
     expect(result.stoppedEarly).toBe(false);
     expect(result.finalStateId).toBe("q1");
-    expect(result.steps.map((step) => step.currentStateId)).toEqual([
-      "q0",
-      "q1",
-    ]);
+    expect(result.steps.map((step) => step.currentStateId)).toEqual(["q0","q1",]);
   });
 
   it("bricht frühzeitig ab, wenn keine passende Transition existiert", () => {
@@ -83,10 +77,7 @@ describe("simulateDfaRun", () => {
     expect(result.accepted).toBe(false);
     expect(result.stoppedEarly).toBe(true);
     expect(result.finalStateId).toBe("q1");
-    expect(result.steps.map((step) => step.currentStateId)).toEqual([
-      "q0",
-      "q1",
-    ]);
+    expect(result.steps.map((step) => step.currentStateId)).toEqual(["q0","q1",]);
   });
 
   it("behandelt das leere Wort korrekt", () => {
