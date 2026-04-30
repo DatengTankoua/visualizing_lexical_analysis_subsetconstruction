@@ -11,8 +11,8 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { simulateDfaRun, type SimulationResult } from "./simulateDfaRun";
-import type { DFA } from "../models/types";
+import { simulateDfaRun, type SimulationResult } from "@/core/algorithm/simulateDfaRun";
+import type { DFA } from "@/core/models/types";
 
 describe("simulateDfaRun", () => {
   // 

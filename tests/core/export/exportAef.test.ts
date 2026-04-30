@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { exportDfaToAef } from "./exportAef";
-import { parseDSL } from "../parser/dslParser";
-import type { DFA } from "../models/types";
+import { exportDfaToAef } from "@/core/export/exportAef";
+import { parseDSL } from "@/core/parser/dslParser";
+import type { DFA } from "@/core/models/types";
 
 /**
  * Testet den Export eines DFA im AEF-Format.

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
-import GraphViewer from "./GraphViewer";
-import type { NFA } from "../../core/models/types";
+import GraphViewer from "@/components/GraphViewer/GraphViewer";
+import type { NFA } from "@/core/models/types";
 
 /* ---------------- Mock Storage für Positionen ---------------- */
 const mockNodePositions = new Map<string, { x: number; y: number }>();

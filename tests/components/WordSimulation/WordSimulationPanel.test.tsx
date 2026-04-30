@@ -1,10 +1,10 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import WordSimulationPanel from "./WordSimulationPanel";
-import type { DFA } from "../../core/models/types";
-import type { SimulationResult } from "../../core/algorithm/simulateDfaRun";
-import { simulateDfaRun } from "../../core/algorithm/simulateDfaRun";
+import WordSimulationPanel from "@/components/WordSimulation/WordSimulationPanel";
+import type { DFA } from "@/core/models/types";
+import type { SimulationResult } from "@/core/algorithm/simulateDfaRun";
+import { simulateDfaRun } from "@/core/algorithm/simulateDfaRun";
 
 vi.mock("@tolgee/react", () => ({
   useTranslate: () => ({
@@ -17,7 +17,7 @@ vi.mock("@tolgee/react", () => ({
   }),
 }));
 
-vi.mock("../../core/algorithm/simulateDfaRun", () => ({
+vi.mock("@/core/algorithm/simulateDfaRun", () => ({
   simulateDfaRun: vi.fn(),
 }));
 
